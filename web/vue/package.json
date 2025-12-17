@@ -3,8 +3,8 @@
   "version": "0.2.3",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
+    "serve": "NODE_OPTIONS=--openssl-legacy-provider  vue-cli-service serve",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider  vue-cli-service build"
   },
   "dependencies": {
     "marked": "^0.4.0",
@@ -31,6 +31,6 @@
   "browserslist": [
     "> 1%",
     "last 2 versions",
-    "not ie <= 8"
+    "not ie <= 11"
   ]
 }
