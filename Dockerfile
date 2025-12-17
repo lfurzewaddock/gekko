@@ -18,11 +18,11 @@ RUN npm install --production && \
     npm cache clean --force
 
 # Install Gekko Broker dependencies
-WORKDIR exchange
+WORKDIR /usr/src/app/exchange
 COPY exchange/package.json .
 RUN npm install --production && \
     npm cache clean --force
-WORKDIR ../
+WORKDIR /usr/src/app
 
 # Bundle app source
 COPY . /usr/src/app
