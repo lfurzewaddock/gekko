@@ -95,7 +95,7 @@ Reader.prototype.get = function(from, to, what, next) {
   if(what === 'full')
     what = '*';
 
-  this.db.all(`
+  this.db != null && this.db.all(`
     SELECT ${what} from ${sqliteUtil.table('candles')}
     WHERE start <= ${to} AND start >= ${from}
     ORDER BY start ASC
