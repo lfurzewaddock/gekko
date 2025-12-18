@@ -18,6 +18,27 @@ See [the documentation website](https://gekko.wizb.it/docs/introduction/about_ge
 
 ## Installation & Usage
 
+WIP: codebase monorepo organisation
+
+### [pnpm package manager required](https://pnpm.io/installation)
+
+```
+pnpm i
+pnpm approve-builds
+```
+
+### Run all tests (legacy mocha & current jest) in gekko app
+
+```
+pnpm --filter gekko test
+```
+
+### Start gekko app, exchange app, legacy API and legacy UI
+
+```
+pnpm --filter gekko start
+```
+
 See [the installing Gekko doc](https://gekko.wizb.it/docs/installation/installing_gekko.html).
 
 ## Community & Support
