@@ -1,0 +1,15 @@
+packages:
+  - apps/**
+
+onlyBuiltDependencies:
+  - '@swc/core'
+  - bufferutil
+  - core-js
+  - ejs
+  - es5-ext
+  - sinon
+  - sqlite3
+  - talib
+  - tulind
+  - unrs-resolver
+  - utf-8-validate
