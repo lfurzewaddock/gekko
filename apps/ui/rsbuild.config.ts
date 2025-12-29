@@ -6,4 +6,10 @@ export default defineConfig({
   server: {
     port: 3001,
   },
+  source: {
+    define: {
+      'process.env.API_URL_PUBLIC_BASE':
+        JSON.stringify(process.env.API_URL_PUBLIC_BASE) || undefined,
+    },
+  },
 });
