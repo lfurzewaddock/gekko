@@ -1,9 +1,13 @@
-import { HttpConfig } from '#core/HttpConfig';
+import type { ContainerDefinition } from '#ioc';
 
 export class HttpGateway {
   private config;
   private headers: Record<string, string>;
-  constructor({ HttpConfig }: { HttpConfig: HttpConfig }) {
+  constructor({
+    HttpConfig,
+  }: {
+    HttpConfig: ContainerDefinition['HttpConfig'];
+  }) {
     this.config = HttpConfig;
     this.headers = {
       'Content-Type': 'application/json',
