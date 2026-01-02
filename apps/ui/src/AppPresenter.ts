@@ -22,8 +22,9 @@ export class AppPresenter {
     };
     this.router.registerRoutes(onRouteChangeWrapper);
 
-    // redirect to home only if at app root
+    // redirect to home only if env does not suport currentLocation or is at app root
     const currentLocation = this.router.getCurrentLocation();
-    if (currentLocation?.url === '') this.router.goToId('homeLink');
+    if (!currentLocation || currentLocation?.url === '')
+      this.router.goToId('homeLink');
   };
 }

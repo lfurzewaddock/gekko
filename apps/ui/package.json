@@ -22,7 +22,7 @@
     "format": "prettier --write .",
     "lint": "eslint .",
     "preview": "rsbuild preview",
-    "test": "jest --watch"
+    "test": "jest --coverage --watch"
   },
   "dependencies": {
     "awilix": "^12.0.5",

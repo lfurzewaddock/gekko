@@ -8,10 +8,6 @@ export class NavigationPresenter {
   routerRepository;
 
   get viewModel() {
-    console.log(
-      'this.navigationRepository.currentNode',
-      this.navigationRepository.currentNode,
-    );
     const vm = {
       currentSelectedVisibleName: '',
       currentSelectedNode: this.navigationRepository.getPrimaryNavNodes()[0],
@@ -25,7 +21,6 @@ export class NavigationPresenter {
     };
 
     let currentNode = this.navigationRepository.currentNode;
-    console.log('currentNode', currentNode);
 
     if (currentNode) {
       vm.currentSelectedVisibleName = this.visibleName(currentNode);
