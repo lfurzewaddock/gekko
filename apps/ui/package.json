@@ -22,10 +22,14 @@
     "format": "prettier --write .",
     "lint": "eslint .",
     "preview": "rsbuild preview",
-    "test": "jest --watch"
+    "test": "jest --coverage --watch"
   },
   "dependencies": {
     "awilix": "^12.0.5",
+    "clsx": "^2.1.1",
+    "mobx": "^6.15.0",
+    "mobx-react": "^9.2.1",
+    "navigo": "^8.11.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

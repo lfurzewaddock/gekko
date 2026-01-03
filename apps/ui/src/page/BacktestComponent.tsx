@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+
 import { useDependency } from '#core/hooks/use-dependency';
 import container from '#ioc';
-import { HttpGateway } from '#core/HttpGateway';
+import type { ContainerDefinition } from '#ioc';
 
-function Component() {
-  const httpGateway = useDependency<HttpGateway>('HttpGateway');
+function PageBacktest() {
+  const httpGateway =
+    useDependency<ContainerDefinition['HttpGateway']>('HttpGateway');
   const [vm, setVm] = useState<any>(null);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ function Component() {
 
   return (
     <>
-      <div>Component</div>
+      <div>Page Backtest</div>
       <div>
         <h2>API call response</h2>
         <pre>{JSON.stringify(vm, null, 2)}</pre>
@@ -41,4 +43,4 @@ function Component() {
     </>
   );
 }
-export default Component;
+export default PageBacktest;
