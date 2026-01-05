@@ -12,7 +12,7 @@ function NavComponent() {
   const router = useDependency<ContainerDefinition['Router']>('Router');
 
   return (
-    <div className="w-full max-w-7/10 h-full">
+    <div className="w-full max-w-8/10 h-full">
       <div className="flex flex-row justify-evenly h-full">
         {presenter.viewModel.navNodes.map((node) => (
           <NavMenuBtn key={node.id}>
