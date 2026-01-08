@@ -41,6 +41,23 @@ pnpm --filter gekko start
 
 See [the installing Gekko doc](https://gekko.wizb.it/docs/installation/installing_gekko.html).
 
+## Dev notes
+
+UI rebuild is WIP (stage 1: develop branch)
+
+- stage 1: web UI: React clone of existing Vue SPA with new architecture, high test coverage and some UX improvements/fixes
+- stage 2: web API: Fastify clone of existing Koa REST/Socket app with new architecture and high test coverage
+- stage 3: web UI: Major changes to existing and new features, if any required
+- stage 4: web API: changes to support web UI features, if any required
+
+### React UI (WIP)
+
+```
+pnpm run --filter gekko-app-ui dev
+```
+
+dev url: [http://localhost:3001/](http://localhost:3001/)
+
 ## Community & Support
 
 Gekko has [a forum](https://forum.gekko.wizb.it/) that is the place for discussions on using Gekko, automated trading and exchanges. In case you rather want to chat in realtime about Gekko feel free to join the [Gekko Support Discord](https://discord.gg/26wMygt).
