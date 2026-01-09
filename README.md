@@ -53,7 +53,7 @@ UI rebuild is WIP (stage 1: develop branch)
 ### React UI (WIP)
 
 ```
-pnpm run --filter gekko-app-ui dev
+pnpm --filter gekko-app-ui dev
 ```
 
 dev url: [http://localhost:3001/](http://localhost:3001/)
