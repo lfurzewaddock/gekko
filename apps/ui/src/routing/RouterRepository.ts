@@ -26,6 +26,8 @@ export type RouteIdents =
 export class RouterRepository {
   currentRoute: Route = { routeId: null };
 
+  backtestRepository;
+
   routerGateway;
 
   onRouteChanged = () => {};
@@ -44,6 +46,12 @@ export class RouterRepository {
         path: '/ui/backtest',
         isSecure: false,
       },
+      onEnter: () => {
+        this.backtestRepository.load();
+      },
+      onLeave: () => {
+        this.backtestRepository.reset();
+      },
     },
     {
       routeId: 'default',
@@ -57,6 +65,7 @@ export class RouterRepository {
 
   constructor(opts: ContainerDefinition) {
     this.routerGateway = opts.RouterGateway;
+    this.backtestRepository = opts.BacktestRepository;
     makeObservable(this, {
       currentRoute: observable,
     });
