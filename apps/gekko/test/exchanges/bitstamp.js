@@ -46,7 +46,7 @@ spoofer = {
 }
 
 describe('exchanges/bitstamp', function() {
-  var Bitstamp = proxyquire(dirs.gekko + 'exchange/wrappers/bitstamp', spoofer);
+  var Bitstamp = proxyquire(dirs.apps + 'exchange/wrappers/bitstamp', spoofer);
   var bs;
 
   it('should instantiate', function() {

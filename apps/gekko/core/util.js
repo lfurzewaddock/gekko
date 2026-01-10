@@ -107,6 +107,7 @@ var util = {
       gekko: ROOT,
       core: ROOT + 'core/',
       markets: ROOT + 'core/markets/',
+      apps: path.normalize(PARENT),
       exchanges: path.normalize(PARENT + 'exchange/wrappers/'),
       plugins: ROOT + 'plugins/',
       methods: ROOT + 'strategies/',

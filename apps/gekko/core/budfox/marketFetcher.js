@@ -14,7 +14,7 @@ const dirs = util.dirs();
 
 const config = util.getConfig();
 const log = require(dirs.core + 'log');
-const exchangeChecker = require(dirs.gekko + 'exchange/exchangeChecker');
+const exchangeChecker = require(dirs.apps + 'exchange/exchangeChecker');
 
 const TradeBatcher = require(util.dirs().budfox + 'tradeBatcher');
 
@@ -23,7 +23,7 @@ const Fetcher = function(config) {
     throw new Error('TradeFetcher expects a config');
 
   const exchangeName = config.watch.exchange.toLowerCase();
-  const DataProvider = require(util.dirs().gekko + 'exchange/wrappers/' + exchangeName);
+  const DataProvider = require(util.dirs().apps + 'exchange/wrappers/' + exchangeName);
   _.bindAll(this);
 
   // Create a public dataProvider object which can retrieve live
