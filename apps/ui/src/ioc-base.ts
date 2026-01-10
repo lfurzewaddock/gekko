@@ -2,8 +2,10 @@ import { createContainer, asClass } from 'awilix';
 import { Router } from '#routing/Router';
 import { AppPresenter } from '#AppPresenter';
 import { RouterRepository } from '#routing/RouterRepository';
-import { NavigationRepository } from '#layout/NavRepository.ts';
-import { NavigationPresenter } from '#layout/NavPresenter.ts';
+import { NavigationRepository } from '#layout/NavRepository';
+import { NavigationPresenter } from '#layout/NavPresenter';
+import { BacktestRepository } from '#page/Backtest/BacktestRepository';
+import { BacktestPresenter } from '#page/Backtest/BacktestPresenter';
 
 export interface ContainerDefinition {
   RouterRepository: RouterRepository;
@@ -11,6 +13,8 @@ export interface ContainerDefinition {
   AppPresenter: AppPresenter;
   NavigationRepository: NavigationRepository;
   NavigationPresenter: NavigationPresenter;
+  BacktestRepository: BacktestRepository;
+  BacktestPresenter: BacktestPresenter;
 }
 
 export class BaseIOC {
@@ -29,6 +33,8 @@ export class BaseIOC {
       Router: asClass(Router).singleton(),
       AppPresenter: asClass(AppPresenter),
       NavigationPresenter: asClass(NavigationPresenter),
+      BacktestRepository: asClass(BacktestRepository).singleton(),
+      BacktestPresenter: asClass(BacktestPresenter),
     });
     return this.container;
   };

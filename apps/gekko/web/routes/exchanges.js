@@ -12,6 +12,7 @@ config.silent = false;
 util.setConfig(config);
 
 module.exports = function *() {
+  // TODO ? check exchangesDir is correct
   const exchangesDir = yield fs.readdir(gekkoRoot + 'exchange/wrappers/');
   const exchanges = exchangesDir
     .filter(f => _.last(f, 3).join('') === '.js')

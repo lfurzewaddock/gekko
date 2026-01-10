@@ -3,7 +3,7 @@ const _ = require('lodash');
 const util = require('../util');
 const dirs = util.dirs();
 
-const exchangeChecker = require(dirs.gekko + 'exchange/exchangeChecker');
+const exchangeChecker = require(dirs.apps + 'exchange/exchangeChecker');
 const config = util.getConfig();
 
 const slug = config.watch.exchange.toLowerCase();

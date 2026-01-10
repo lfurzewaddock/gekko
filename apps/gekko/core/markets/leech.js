@@ -9,7 +9,7 @@ const util = require('../util');
 const dirs = util.dirs();
 const config = util.getConfig();
 
-const exchangeChecker = require(dirs.gekko + 'exchange/exchangeChecker');
+const exchangeChecker = require(dirs.apps + 'exchange/exchangeChecker');
 
 const adapter = config[config.adapter];
 const Reader = require(dirs.gekko + adapter.path + '/reader');

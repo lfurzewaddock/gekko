@@ -7,7 +7,7 @@ const moment = require('moment');
 const log = require(dirs.core + 'log');
 const Broker = require(dirs.broker + '/gekkoBroker');
 
-require(dirs.gekko + '/exchange/dependencyCheck');
+require(dirs.apps + '/exchange/dependencyCheck');
 
 const Trader = function(next) {
 

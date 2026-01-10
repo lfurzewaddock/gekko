@@ -18,8 +18,8 @@ Stitcher.prototype.ago = function(ts) {
 }
 
 Stitcher.prototype.verifyExchange = function() {
-  require(dirs.gekko + 'exchange/dependencyCheck');
-  const exchangeChecker = require(dirs.gekko + 'exchange/exchangeChecker');
+  require(dirs.apps + 'exchange/dependencyCheck');
+  const exchangeChecker = require(dirs.apps + 'exchange/exchangeChecker');
   const slug = config.watch.exchange.toLowerCase();
   let exchange;
   try {
@@ -187,7 +187,7 @@ Stitcher.prototype.prepareHistoricalData = function(done) {
 
 Stitcher.prototype.checkExchangeTrades = function(since, next) {
   var provider = config.watch.exchange.toLowerCase();
-  var DataProvider = require(util.dirs().gekko + 'exchange/wrappers/' + provider);
+  var DataProvider = require(util.dirs().apps + 'exchange/wrappers/' + provider);
 
   var exchangeConfig = config.watch;
 

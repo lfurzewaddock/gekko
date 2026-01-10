@@ -4,7 +4,7 @@ import { observer } from 'mobx-react';
 import { useDependency } from '#core/hooks/use-dependency';
 import Layout from '#layout/Layout';
 import PageHomeComponent from '#page/HomeComponent';
-import PageBacktestComponent from '#page/BacktestComponent';
+import PageBacktestComponent from '#page/Backtest/BacktestComponent';
 import PageNotFoundComponent from '#page/NotFoundComponent';
 
 import type { ContainerDefinition } from '#ioc';

@@ -16,7 +16,7 @@ export class HttpGateway {
 
   async get<Res>(
     path: string,
-    { signal }: { signal: AbortSignal },
+    { signal }: { signal?: AbortSignal | null },
   ): Promise<Res> {
     const response = await fetch(this.config.apiUrl + path, {
       method: 'GET',
