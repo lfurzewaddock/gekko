@@ -27,11 +27,16 @@ export class HttpGateway {
     return dto;
   }
 
-  async post<Req, Res>(path: string, reqDto: Req): Promise<Res> {
+  async post<Req, Res>(
+    path: string,
+    { signal }: { signal?: AbortSignal | null },
+    reqDto: Req,
+  ): Promise<Res> {
     const response = await fetch(this.config.apiUrl + path, {
       method: 'POST',
       body: JSON.stringify(reqDto),
       headers: this.headers,
+      signal,
     });
     const dto = response.json();
     return dto;
