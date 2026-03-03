@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-  Annotate,
   Brush,
+  CircleMarker,
   Chart,
   ChartCanvas,
   GenericChartComponent,
-  MarkerAnnotation,
+  ScatterSeries,
   XAxis,
   YAxis,
   discontinuousTimeScaleProviderBuilder,
@@ -31,14 +31,19 @@ export interface ChartMargin {
 
 interface FocusContextState {
   readonly focusExtents?: [number | Date, number | Date];
+  readonly hoveredTrade?: {
+    readonly xValue: number | Date;
+    readonly price: number;
+    readonly text: string;
+  };
 }
 
 interface FocusCtxProps {
-  readonly ctxLineStrokeStyle: string;
-  readonly ctxBrushStrokeStyle: string;
-  readonly ctxBrushFillStyle: string;
-  readonly ctxBrushMinSelectionSize: number;
-  readonly ctxXAxisShowGridLines: boolean;
+  readonly ctxLineStrokeStyle?: string;
+  readonly ctxBrushStrokeStyle?: string;
+  readonly ctxBrushFillStyle?: string;
+  readonly ctxBrushMinSelectionSize?: number;
+  readonly ctxXAxisShowGridLines?: boolean;
 }
 
 interface ChartProps<T extends ChartData>
@@ -74,13 +79,13 @@ class BasicLineSeries<T extends ChartData> extends React.Component<
 
     this.state = {
       focusExtents: undefined,
+      hoveredTrade: undefined,
     };
   }
 
   public render() {
     const {
       data: initialData,
-      defined,
       height,
       ratio,
       width,
@@ -119,6 +124,21 @@ class BasicLineSeries<T extends ChartData> extends React.Component<
     const { contextCanvasHeight, contextMargin, focusMargin, xScaleProvider } =
       this;
 
+    const resolvedFocusMargin = margin
+      ? {
+          ...focusMargin,
+          ...margin,
+        }
+      : focusMargin;
+
+    const resolvedContextMargin = margin
+      ? {
+          ...contextMargin,
+          left: margin.left ?? contextMargin.left,
+          right: margin.right ?? contextMargin.right,
+        }
+      : contextMargin;
+
     const focusCanvasHeight = height - contextCanvasHeight - 12;
     if (focusCanvasHeight <= 0) return;
 
@@ -152,7 +172,7 @@ class BasicLineSeries<T extends ChartData> extends React.Component<
           height={focusCanvasHeight}
           ratio={ratio}
           width={width}
-          margin={focusMargin}
+          margin={resolvedFocusMargin}
           data={data}
           displayXAccessor={displayXAccessor}
           seriesName="Data"
@@ -160,45 +180,22 @@ class BasicLineSeries<T extends ChartData> extends React.Component<
           xAccessor={xAccessor}
           xExtents={focusExtents}
         >
-          <Chart id={1} yExtents={this.focusYExtents}>
+          <Chart id={1} yExtents={this.yAccessor}>
             <XAxis tickFormat={tickFormat} />
             <YAxis axisAt="left" orient="left" />
             <LineSeries yAccessor={this.yAccessor} {...rest} />
-            <Annotate
-              with={MarkerAnnotation}
-              usingProps={{
-                markerShape: 'circle',
-                markerSize: 4, // radius
-                fillStyle: (datum: T) => {
-                  const { trade } = datum;
-                  if (trade == null) return;
-                  if (trade.action === 'buy') return 'green';
-                  if (trade.action === 'sell') return 'red';
-                }, // fill color
-                tooltip: (datum: T) => {
-                  const { trade } = datum;
-                  if (trade == null) return;
-                  return `${trade.action.charAt(0).toUpperCase()}${trade.action.slice(1)} @ ${trade.price}`;
-                },
-                strokeStyle: '#ffffff', // stroke color
-                strokeWidth: 1,
-                y: ({
-                  yScale,
-                  datum,
-                }: {
-                  yScale: (n: number) => number;
-                  datum: T;
-                }): number | undefined => {
-                  if (datum.trade) return yScale(datum.trade.price);
-                },
-              }}
-              when={this.when}
+            <ScatterSeries
+              yAccessor={this.tradeYAccessor}
+              marker={CircleMarker}
+              markerProps={this.tradeMarkerProps}
             />
             <GenericChartComponent
-              drawOn={['pan', 'zoom']}
-              onPan={this.handleFocusChartInteraction}
+              drawOn={['pan', 'zoom', 'mousemove']}
+              onPan={this.clearHoveredTrade}
               onPanEnd={this.handleFocusChartInteraction}
               onZoom={this.handleFocusChartInteraction}
+              onMouseMove={this.handleHoverTradeTooltip}
+              svgDraw={this.renderHoveredTradeTooltip}
             />
           </Chart>
         </ChartCanvas>
@@ -207,7 +204,7 @@ class BasicLineSeries<T extends ChartData> extends React.Component<
           height={contextCanvasHeight}
           ratio={ratio}
           width={width}
-          margin={contextMargin}
+          margin={resolvedContextMargin}
           // height={100}
           // ratio={1}
           // width={500}
@@ -222,7 +219,7 @@ class BasicLineSeries<T extends ChartData> extends React.Component<
           disableZoom
           useCrossHairStyleCursor={false}
         >
-          <Chart id={2} yExtents={this.contextYExtents}>
+          <Chart id={2} yExtents={this.yAccessor}>
             <XAxis ticks={6} showGridLines={ctxXAxisShowGridLines} />
             <YAxis
               ticks={3}
@@ -231,13 +228,12 @@ class BasicLineSeries<T extends ChartData> extends React.Component<
               showTickLabel={false}
             />
             <LineSeries
-              yAccessor={this.contextYExtents}
+              yAccessor={this.yAccessor}
               strokeStyle={ctxLineStrokeStyle}
             />
             <Brush
               enabled
               type="1D"
-              onBrush={this.handleBrush}
               onBrushChange={this.handleBrush}
               interactiveState={brushInteractiveState}
               minimumSelectionSize={ctxBrushMinSelectionSize}
@@ -254,8 +250,22 @@ class BasicLineSeries<T extends ChartData> extends React.Component<
     return data.open;
   };
 
-  private readonly when = (data: T) => {
-    return data.trade != null;
+  private readonly tradeYAccessor = (data: T) => {
+    return data.trade?.price;
+  };
+
+  private readonly tradeMarkerRadius = 5;
+  private readonly tradeTooltipHitPadding = 8;
+
+  private readonly tradeMarkerProps = {
+    r: this.tradeMarkerRadius,
+    fillStyle: (datum: T) => {
+      if (datum.trade?.action === 'buy') return '#16a34a';
+      if (datum.trade?.action === 'sell') return '#dc2626';
+      return 'none';
+    },
+    strokeStyle: '#ffffff',
+    strokeWidth: 1,
   };
 
   private readonly handleBrush = ({
@@ -265,6 +275,7 @@ class BasicLineSeries<T extends ChartData> extends React.Component<
     start: { xValue: number | Date };
     end: { xValue: number | Date };
   }) => {
+    this.clearHoveredTrade();
     this.updateFocusExtents(start.xValue, end.xValue);
   };
 
@@ -274,7 +285,120 @@ class BasicLineSeries<T extends ChartData> extends React.Component<
       number | Date,
     ];
 
+    this.clearHoveredTrade();
     this.updateFocusExtents(start, end);
+  };
+
+  private readonly handleHoverTradeTooltip = (_: any, moreProps: any) => {
+    const hoveredTrade = this.resolveHoveredTrade(moreProps);
+
+    const currentHoveredTrade = this.state.hoveredTrade;
+
+    if (
+      currentHoveredTrade?.price === hoveredTrade?.price &&
+      currentHoveredTrade?.text === hoveredTrade?.text &&
+      this.toComparableValue(currentHoveredTrade?.xValue ?? 0) ===
+        this.toComparableValue(hoveredTrade?.xValue ?? 0)
+    )
+      return;
+
+    this.setState({
+      hoveredTrade,
+    });
+  };
+
+  private readonly resolveHoveredTrade = (moreProps: any) => {
+    const datum = moreProps.currentItem as T | undefined;
+    const trade = datum?.trade;
+    if (trade == null) return undefined;
+
+    const { mouseXY, xAccessor, xScale, chartConfig } = moreProps;
+    const yScale = chartConfig?.yScale as
+      | ((value: number) => number)
+      | undefined;
+
+    if (yScale == null || !Array.isArray(mouseXY) || mouseXY.length < 2)
+      return undefined;
+
+    const xValue = xAccessor(datum) as number | Date;
+    const markerX = xScale(xValue);
+    const markerY = yScale(trade.price);
+
+    if (!Number.isFinite(markerX) || !Number.isFinite(markerY))
+      return undefined;
+
+    const [mouseX, mouseY] = mouseXY as [number, number];
+
+    const hoverHitRadius = this.tradeMarkerRadius + this.tradeTooltipHitPadding;
+    const dx = mouseX - markerX;
+    const dy = mouseY - markerY;
+
+    if (dx * dx + dy * dy > hoverHitRadius * hoverHitRadius) return undefined;
+
+    return {
+      xValue,
+      price: trade.price,
+      text: this.formatTradeTooltipText(trade),
+    };
+  };
+
+  private readonly formatTradeTooltipText = (
+    trade: NonNullable<T['trade']>,
+  ): string => {
+    return `${trade.action.charAt(0).toUpperCase()}${trade.action.slice(1)} @ ${trade.price}`;
+  };
+
+  private readonly renderHoveredTradeTooltip = (moreProps: any) => {
+    const hoveredTrade = this.state.hoveredTrade;
+    if (hoveredTrade == null) return null;
+
+    const { xScale, chartConfig } = moreProps;
+    const yScale = chartConfig?.yScale as
+      | ((value: number) => number)
+      | undefined;
+
+    if (yScale == null) return null;
+
+    const markerX = xScale(hoveredTrade.xValue);
+    const markerY = yScale(hoveredTrade.price);
+
+    if (!Number.isFinite(markerX) || !Number.isFinite(markerY)) return null;
+
+    return (
+      <g pointerEvents="none" className="react-financial-charts-trade-tooltip">
+        {/*Background colour filter (Best for Dynamic Text)*/}
+        <defs>
+          <filter x="0" y="0" width="1" height="1" id="solid-txt-bg">
+            <feFlood floodColor="black" result="bg" />
+            <feMerge>
+              <feMergeNode in="bg" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <text
+          x={markerX + 8}
+          y={markerY - 10}
+          fill="#ffffff"
+          stroke="rgba(15, 23, 42, 0.85)"
+          strokeWidth={4}
+          paintOrder="stroke"
+          fontSize={11}
+          fontFamily="-apple-system, system-ui, Roboto, 'Helvetica Neue', Ubuntu, sans-serif"
+          filter="url(#solid-txt-bg)"
+        >
+          {hoveredTrade.text}
+        </text>
+      </g>
+    );
+  };
+
+  private readonly clearHoveredTrade = () => {
+    if (this.state.hoveredTrade == null) return;
+
+    this.setState({
+      hoveredTrade: undefined,
+    });
   };
 
   private readonly updateFocusExtents = (
@@ -309,14 +433,6 @@ class BasicLineSeries<T extends ChartData> extends React.Component<
 
   private readonly toComparableValue = (value: number | Date) => {
     return value instanceof Date ? value.valueOf() : value;
-  };
-
-  private readonly focusYExtents = (d: T) => {
-    return [d.open, d.open];
-  };
-
-  private readonly contextYExtents = (d: T) => {
-    return d.open;
   };
 }
 
