@@ -14,7 +14,7 @@ function BacktestFormComponent() {
     <form>
       <SplitScreenComponent>
         <div>
-          <h1>Strategy</h1>
+          <h1 className="text-3xl/20">Strategy</h1>
           <fieldset className="fieldset">
             <legend className="fieldset-legend">Strategy</legend>
             <select
@@ -81,7 +81,7 @@ function BacktestFormComponent() {
           </fieldset>
         </div>
         <div>
-          <h1>Parameters</h1>
+          <h1 className="text-3xl/20">Parameters</h1>
           <fieldset className="fieldset">
             <legend className="fieldset-legend">
               {presenter.viewModel.parametersLegend}
