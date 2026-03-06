@@ -1,7 +1,10 @@
 import { fromUnixTime, format } from 'date-fns';
 import { UTCDate } from '@date-fns/utc';
 
-import { Daily, type ChartData } from '#component/chart/ChartComponent';
+import {
+  RoundtripLineChartComponent,
+  type ChartData,
+} from '#component/chart/RoundtripLineChartComponent.tsx';
 
 import { type BacktestPresenterVm } from '#page/Backtest/BacktestPresenter';
 
@@ -10,9 +13,6 @@ function BacktestFormComponent({
 }: {
   children: BacktestPresenterVm['chartData'];
 }) {
-  // function removeUtcTime(date = new UTCDate()) {
-  //   return new UTCDate(date.getFullYear(), date.getMonth(), date.getDate());
-  // }
   const mergeChartData = (
     candles: { start: number; open: number }[],
     trades: {
@@ -70,23 +70,22 @@ function BacktestFormComponent({
   };
 
   return (
-    <div style={{ position: 'relative' }}>
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: 'grey',
-          opacity: '0.1',
-          cursor: 'zoom-in',
-        }}
-      ></div>
-      <Daily
+    <div
+      className="relative w-screen ml-[50%] -translate-x-1/2"
+      style={{
+        width: 'calc(100vw - 15px)',
+      }}
+    >
+      <div className="absolute bg-gray-400 opacity-10 cursor-zoom-in top-0 bottom-0 left-0 right-0"></div>
+      <RoundtripLineChartComponent
         data={mergedChartData}
         tickFormat={tickFormat}
         margin={{ left: 60, right: 5, bottom: 40, top: 5 }}
+        ctxBrushStrokeStyle="#2563eb"
+        ctxLineStrokeStyle="#2563eb"
+        ctxBrushFillStyle="rgba(37, 99, 235, 0.18)"
+        ctxBrushMinSelectionSize={5}
+        ctxXAxisShowGridLines
       />
     </div>
   );

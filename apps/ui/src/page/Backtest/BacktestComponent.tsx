@@ -5,7 +5,7 @@ import ScansetTableComponent from './ScansetTableComponent';
 
 import type { ContainerDefinition } from '#ioc';
 import BacktestFormComponent from '#page/Backtest/BacktestFormComponent/BacktestFormComponent';
-import BacktesChartComponent from '#page/Backtest/BacktestChartComponent/BacktestChartComonent';
+import BacktestChartComponent from '#page/Backtest/BacktestChartComponent/BacktestChartComponent';
 
 function PageBacktest() {
   const presenter =
@@ -19,13 +19,10 @@ function PageBacktest() {
       <ScansetTableComponent presenter={presenter}>
         {presenter.viewModel.scansets}
       </ScansetTableComponent>
-      {/* <div style={{ flex: '1 1 auto' }}>
-        <Daily data={parsedData} />
-      </div> */}
       <BacktestFormComponent />
-      <BacktesChartComponent>
+      <BacktestChartComponent>
         {presenter.viewModel.chartData}
-      </BacktesChartComponent>
+      </BacktestChartComponent>
       <div>
         <h2>IoC Container Registration(s)</h2>
         <pre>{JSON.stringify(container.registrations, null, 2)}</pre>
