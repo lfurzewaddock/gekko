@@ -1,20 +1,11 @@
-export interface DtoStrategyDataSet<T = string> {
-  name: T;
-  params: string;
-}
-interface DtoScanDataset {
-  exchange: string;
-  currency: string;
-  asset: string;
-  ranges: {
-    from: number;
-    to: number;
-  }[];
-}
+import { UTCDate } from '@date-fns/utc';
 
-export interface ApiDtoScansets {
-  datasets: DtoScanDataset[];
-  errors: Pick<DtoScanDataset, 'exchange' | 'currency' | 'asset'>[];
+type TradeAction = 'buy' | 'sell';
+
+export interface StratCandleTrade {
+  date: UTCDate;
+  open: number;
+  trade: { date: UTCDate; price: number; action: TradeAction } | null;
 }
 
 // ============================================
@@ -30,7 +21,7 @@ interface Market {
 // Trading Advisor Configuration
 // ============================================
 interface TradingAdvisorConfig {
-  enabled: boolean;
+  isEnabled: boolean;
   method: keyof StrategyCfgMap;
   candleSize: number;
   historySize: number;
@@ -85,75 +76,13 @@ export interface StrategyCfgMap {
   'tulip-multi-strat': StratUnknown;
   varPPO: StratUnknown;
 }
-// ============================================
-
-interface SimulationBalance {
-  asset: number;
-  currency: number;
-}
-
-interface PaperTraderConfig {
-  feeMaker: number;
-  feeTaker: number;
-  feeUsing: 'maker' | 'taker';
-  slippage: number;
-  simulationBalance: SimulationBalance;
-  reportRoundtrips: boolean;
-  enabled: boolean;
-}
-
-interface DateRange {
-  from: string;
-  to: string;
-}
-
-interface BacktestSettings {
-  daterange: DateRange;
-}
-
-interface BacktestResultExporterData {
-  stratUpdates: boolean;
-  roundtrips: boolean;
-  stratCandles: boolean;
-  stratCandleProps: string[];
-  trades: boolean;
-}
-
-interface BacktestResultExporterConfig {
-  enabled: boolean;
-  writeToDisk: boolean;
-  data: BacktestResultExporterData;
-}
-
-interface PerformanceAnalyzerConfig {
-  riskFreeReturn: number;
-  enabled: boolean;
-}
-
-export interface BaseBacktestCfg {
-  watch: Market;
-  paperTrader: PaperTraderConfig;
-  tradingAdvisor: TradingAdvisorConfig;
-  backtest: BacktestSettings;
-  backtestResultExporter: BacktestResultExporterConfig;
-  performanceAnalyzer: PerformanceAnalyzerConfig;
-  valid: boolean;
-}
-
-type BacktestCfg = BaseBacktestCfg & {
-  [K in keyof StrategyCfgMap]?: StrategyCfgMap[K];
-};
-
-export type BacktestApiReqPayload = BacktestCfg;
-
-// API Response
 
 // ============================================
 // Performance Report
 // ============================================
 interface PerformanceReport {
-  startTime: string;
-  endTime: string;
+  startTime: UTCDate;
+  endTime: UTCDate;
   timespan: string;
   market: number;
   balance: number;
@@ -168,7 +97,7 @@ interface PerformanceReport {
   exposure: number;
   sharpe: number;
   downside: number;
-  ratioRoundTrips: string;
+  ratioRoundTrips: string; // numeric string: example: '37.1795' investigate why this is a string: perhaps to avoid rounding errors from floating-point math
   alpha: number;
 }
 
@@ -191,9 +120,9 @@ interface Roundtrip {
 // ============================================
 // Strategy Candle
 // ============================================
-interface StratCandle {
+export interface StratCandle {
   open: number;
-  start: number; // Unix timestamp
+  start: UTCDate;
 }
 
 // ============================================
@@ -204,23 +133,21 @@ interface TradePortfolio {
   currency: number;
 }
 
-interface Trade {
+export interface Trade {
   id: string;
   adviceId: string;
-  action: 'buy' | 'sell';
+  action: TradeAction;
   cost: number;
   amount: number;
   price: number;
   portfolio: TradePortfolio;
   balance: number;
-  date: number; // Unix timestamp
+  date: UTCDate;
   effectivePrice: number;
   feePercent: number;
 }
 
-export interface BacktestResultResponseWithStrategy<
-  T extends keyof StrategyCfgMap,
-> {
+export interface BacktestStrategyReport<T extends keyof StrategyCfgMap> {
   market: Market;
   tradingAdvisor: TradingAdvisorConfig & { method: T };
   strategyParameters: StrategyCfgMap[T];
@@ -229,7 +156,3 @@ export interface BacktestResultResponseWithStrategy<
   stratCandles: StratCandle[];
   trades: Trade[];
 }
-
-export type BacktestApiResPayload = BacktestResultResponseWithStrategy<
-  keyof StrategyCfgMap
->;

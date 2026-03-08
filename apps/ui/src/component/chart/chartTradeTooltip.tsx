@@ -4,18 +4,13 @@ import type {
   ChartData,
 } from '#component/chart/RoundtripLineChartComponent.tsx';
 
-const formatTradeTooltipText = (
-  trade: NonNullable<ChartData['trade']>,
-): string => {
-  return `${trade.action.charAt(0).toUpperCase()}${trade.action.slice(1)} @ ${trade.price}`;
-};
-
 export const resolveHoveredTrade = (
   moreProps: HoverTradeMoreProps,
   opt: {
     tradeMarkerRadius: 5;
     tradeTooltipHitPadding: 8;
   },
+  formatTradeTooltipTxt?: (trade: NonNullable<ChartData['trade']>) => string,
 ): HoveredTrade | undefined => {
   const datum = moreProps.currentItem;
   if (datum == null || datum.trade == null) return undefined;
@@ -44,7 +39,9 @@ export const resolveHoveredTrade = (
   return {
     xValue,
     price: trade.price,
-    text: formatTradeTooltipText(trade),
+    text: formatTradeTooltipTxt
+      ? formatTradeTooltipTxt(trade)
+      : trade.price.toString(),
   };
 };
 

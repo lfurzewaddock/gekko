@@ -1,73 +1,15 @@
-import { fromUnixTime, format } from 'date-fns';
-import { UTCDate } from '@date-fns/utc';
+import { observer } from 'mobx-react';
 
-import {
-  RoundtripLineChartComponent,
-  type ChartData,
-} from '#component/chart/RoundtripLineChartComponent.tsx';
+import { useDependency } from '#core/hooks/use-dependency';
 
-import { type BacktestPresenterVm } from '#page/Backtest/BacktestPresenter';
+import { RoundtripLineChartComponent } from '#component/chart/RoundtripLineChartComponent.tsx';
 
-function BacktestFormComponent({
-  children,
-}: {
-  children: BacktestPresenterVm['chartData'];
-}) {
-  const mergeChartData = (
-    candles: { start: number; open: number }[],
-    trades: {
-      id: string;
-      adviceId: string;
-      action: 'buy' | 'sell';
-      cost: number;
-      amount: number;
-      price: number;
-      portfolio: {
-        asset: number;
-        currency: number;
-      };
-      balance: number;
-      date: number; // Unix timestamp
-      effectivePrice: number;
-      feePercent: number;
-    }[],
-  ): ChartData[] => {
-    const tradeMap = new Map(trades.map((ind) => [ind.date, ind]));
-    return candles.map(({ start, open }) => {
-      const candle = {
-        date: new UTCDate(fromUnixTime(start)),
-        open,
-      };
-      const tradeByDate = tradeMap.get(start);
-      if (tradeByDate) {
-        return {
-          ...candle,
-          trade: {
-            date: new UTCDate(fromUnixTime(tradeByDate.date)),
-            price: tradeByDate.price,
-            action: tradeByDate.action,
-          },
-        };
-      }
-      return {
-        ...candle,
-        trade: null,
-      };
-    });
-  };
+import type { ContainerDefinition } from '#ioc';
 
-  const mergedChartData = mergeChartData(
-    children?.stratCandles || [],
-    children?.trades || [],
-  );
-
-  const tickFormat = (tick: number | Date) => {
-    const formatFn = (d: Date) => format(d, 'dd LLL').toLocaleUpperCase();
-    if (typeof tick === 'number') {
-      return formatFn(mergedChartData[tick].date);
-    }
-    return formatFn(tick);
-  };
+function BacktestFormComponent() {
+  const presenter = useDependency<
+    ContainerDefinition['BacktestChartPresenter']
+  >('BacktestChartPresenter');
 
   return (
     <div
@@ -78,17 +20,21 @@ function BacktestFormComponent({
     >
       <div className="absolute bg-gray-400 opacity-10 cursor-zoom-in top-0 bottom-0 left-0 right-0"></div>
       <RoundtripLineChartComponent
-        data={mergedChartData}
-        tickFormat={tickFormat}
-        margin={{ left: 60, right: 5, bottom: 40, top: 5 }}
-        ctxBrushStrokeStyle="#2563eb"
-        ctxLineStrokeStyle="#2563eb"
-        ctxBrushFillStyle="rgba(37, 99, 235, 0.18)"
-        ctxBrushMinSelectionSize={5}
-        ctxXAxisShowGridLines
+        data={presenter.viewModel.chartData}
+        tickFormat={presenter.tickFormat}
+        tradeMarkerFill={presenter.tradeMarkerFill}
+        formatTradeTooltipTxt={presenter.formatTradeTooltipTxt}
+        isDisplayTradeTooltip={presenter.cfg.isDisplayTradeTooltip}
+        margin={presenter.cfg.focusChartMargin}
+        ctxBrushStrokeStyle={presenter.cfg.ctxBrushStrokeStyle}
+        ctxLineStrokeStyle={presenter.cfg.ctxLineStrokeStyle}
+        ctxBrushFillStyle={presenter.cfg.ctxBrushFillStyle}
+        ctxBrushMinSelectionSize={presenter.cfg.ctxBrushMinSelectionSize}
+        ctxXAxisShowGridLines={presenter.cfg.ctxXAxisHasGridLines}
+        focusChartXAxisHasGridLines={presenter.cfg.focusChartXAxisHasGridLines}
       />
     </div>
   );
 }
 
-export default BacktestFormComponent;
+export default observer(BacktestFormComponent);

@@ -1,7 +1,7 @@
 import { makeObservable, observable, action } from 'mobx';
 import TOML from 'smol-toml';
 import { UTCDate } from '@date-fns/utc';
-import { fromUnixTime } from 'date-fns';
+import { fromUnixTime, parse } from 'date-fns';
 
 import { getErrorMessage } from '#util/error';
 import { isObjEmpty } from '#util/index.ts';
@@ -9,8 +9,10 @@ import { isObjEmpty } from '#util/index.ts';
 import type { ContainerDefinition } from '#ioc';
 import type { ScanSet, ScanSets } from '#core/domain/ScanSet.ts';
 import type { StrategyParam, StrategyIdent } from '#core/domain/Strategy.ts';
+import type { BacktestStrategyReport } from '#core/domain/Backtest.ts';
 
 import type {
+  BacktestResultResponseWithStrategy,
   BaseBacktestCfg,
   BacktestApiReqPayload,
   BacktestApiResPayload,
@@ -44,7 +46,9 @@ export class BacktestRepository {
   // _candleSizeMinutes =
   //   CANDLE_SIZE_DEFAULT * MINUTES_PER_UNIT[CANDLE_SIZE_UNIT_DEFAULT];
   historySize = HISTORY_SIZE_DEFAULT;
-  chartData: BacktestApiResPayload | null = null;
+  backtestStrategyReport: BacktestStrategyReport<
+    typeof this.strategySelected
+  > | null = null;
 
   constructor(opts: ContainerDefinition) {
     this.httpGateway = opts.HttpGateway;
@@ -56,7 +60,7 @@ export class BacktestRepository {
       historySize: observable,
       candleSize: observable,
       candleSizeUnit: observable,
-      chartData: observable,
+      backtestStrategyReport: observable,
       scansetActiveChangeHandler: action,
       strategyActiveChangeHandler: action,
       historySizeChangeHandler: action,
@@ -137,6 +141,176 @@ export class BacktestRepository {
     return true;
   };
 
+  strategyParamMapper = <T extends StrategyIdent>(
+    strategy: T,
+    params: BacktestResultResponseWithStrategy<T>['strategyParameters'],
+  ): BacktestStrategyReport<T>['strategyParameters'] => {
+    switch (strategy) {
+      case 'MACD': {
+        const { short, long, signal, thresholds } =
+          params as BacktestResultResponseWithStrategy<'MACD'>['strategyParameters'];
+        const { down, up, persistence } = thresholds;
+
+        return {
+          short,
+          long,
+          signal,
+          thresholds: {
+            down,
+            up,
+            persistence,
+          },
+        } as BacktestStrategyReport<T>['strategyParameters'];
+      }
+      case 'RSI': {
+        const { interval, thresholds } =
+          params as BacktestResultResponseWithStrategy<'RSI'>['strategyParameters'];
+        const { low, high, persistence } = thresholds;
+
+        return {
+          interval,
+          thresholds: {
+            low,
+            high,
+            persistence,
+          },
+        } as BacktestStrategyReport<T>['strategyParameters'];
+      }
+      default:
+        return params as BacktestStrategyReport<T>['strategyParameters'];
+    }
+  };
+
+  transformBacktestReportApiDto = <
+    T extends StrategyIdent = typeof this.strategySelected,
+  >(
+    apiPayload: BacktestResultResponseWithStrategy<T>,
+  ): BacktestStrategyReport<T> => {
+    const { exchange, currency, asset } = apiPayload.market;
+    const { enabled, method, candleSize, historySize } =
+      apiPayload.tradingAdvisor;
+    const {
+      startTime,
+      endTime,
+      timespan,
+      market,
+      balance,
+      profit,
+      relativeProfit,
+      yearlyProfit,
+      relativeYearlyProfit,
+      startPrice,
+      endPrice,
+      trades,
+      startBalance,
+      exposure,
+      sharpe,
+      downside,
+      ratioRoundTrips,
+      alpha,
+    } = apiPayload.performanceReport;
+
+    return {
+      market: {
+        exchange,
+        currency,
+        asset,
+      },
+      tradingAdvisor: {
+        isEnabled: enabled,
+        method,
+        candleSize,
+        historySize,
+      },
+      strategyParameters: this.strategyParamMapper(
+        method,
+        apiPayload.strategyParameters,
+      ),
+      performanceReport: {
+        startTime: parse(startTime, 'yyyy-MM-dd HH:mm:ss', new UTCDate()),
+        endTime: parse(endTime, 'yyyy-MM-dd HH:mm:ss', new UTCDate()),
+        timespan,
+        market,
+        balance,
+        profit,
+        relativeProfit,
+        yearlyProfit,
+        relativeYearlyProfit,
+        startPrice,
+        endPrice,
+        trades,
+        startBalance,
+        exposure,
+        sharpe,
+        downside,
+        ratioRoundTrips,
+        alpha,
+      },
+      roundtrips: apiPayload.roundtrips.map(
+        ({
+          id,
+          entryAt,
+          entryPrice,
+          entryBalance,
+          exitAt,
+          exitPrice,
+          exitBalance,
+          duration,
+          pnl,
+          profit,
+        }) => ({
+          id,
+          entryAt,
+          entryPrice,
+          entryBalance,
+          exitAt,
+          exitPrice,
+          exitBalance,
+          duration,
+          pnl,
+          profit,
+        }),
+      ),
+      stratCandles: apiPayload.stratCandles.map(({ open, start }) => ({
+        open,
+        start: new UTCDate(fromUnixTime(start)),
+      })),
+      trades: apiPayload.trades.map(
+        ({
+          id,
+          adviceId,
+          action,
+          cost,
+          amount,
+          price,
+          portfolio,
+          balance,
+          date,
+          effectivePrice,
+          feePercent,
+        }) => {
+          const { asset, currency } = portfolio;
+          return {
+            id,
+            adviceId,
+            action,
+            cost,
+            amount,
+            price,
+            portfolio: {
+              asset,
+              currency,
+            },
+            balance,
+            date: new UTCDate(fromUnixTime(date)),
+            effectivePrice,
+            feePercent,
+          };
+        },
+      ),
+    };
+  };
+
   load = async () => {
     const { signal } = new AbortController();
     const apiCalls = [
@@ -182,11 +356,13 @@ export class BacktestRepository {
   // TODO - handle errors
   post = async (backtestCfg: BacktestApiReqPayload) => {
     const { signal } = new AbortController();
-    const test = await this.httpGateway.post<
+    const backtestApiResPayload = await this.httpGateway.post<
       BacktestApiReqPayload,
       BacktestApiResPayload
     >('/backtest', { signal }, backtestCfg);
-    this.chartData = test;
+    this.backtestStrategyReport = this.transformBacktestReportApiDto(
+      backtestApiResPayload,
+    );
   };
 
   runBacktest = async () => {

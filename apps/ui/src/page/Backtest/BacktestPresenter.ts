@@ -42,7 +42,6 @@ export class BacktestPresenter {
         ) ?? [],
       isEnableBtnBackest: this.backtestRepository.scansetSelected != null,
       scansetSelected: this.backtestRepository.scansetSelected,
-      chartData: this.backtestRepository.chartData,
     };
   }
 

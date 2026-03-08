@@ -20,9 +20,7 @@ function PageBacktest() {
         {presenter.viewModel.scansets}
       </ScansetTableComponent>
       <BacktestFormComponent />
-      <BacktestChartComponent>
-        {presenter.viewModel.chartData}
-      </BacktestChartComponent>
+      <BacktestChartComponent />
       <div>
         <h2>IoC Container Registration(s)</h2>
         <pre>{JSON.stringify(container.registrations, null, 2)}</pre>

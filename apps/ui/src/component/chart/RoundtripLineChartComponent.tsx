@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import {
   Brush,
   CircleMarker,
@@ -67,7 +67,6 @@ interface FocusCtxProps {
   readonly ctxBrushMinSelectionSize?: number;
   readonly ctxXAxisShowGridLines?: boolean;
 }
-
 interface ChartProps<T extends ChartData>
   extends FocusCtxProps, Partial<LineSeriesProps> {
   readonly data: T[];
@@ -76,6 +75,12 @@ interface ChartProps<T extends ChartData>
   readonly ratio: number;
   readonly tickFormat?: (idx: number) => string;
   readonly margin?: ChartMargin;
+  readonly tradeMarkerFill?: (action?: 'buy' | 'sell') => string | undefined;
+  readonly formatTradeTooltipTxt: (
+    trade: NonNullable<ChartData['trade']>,
+  ) => string;
+  readonly isDisplayTradeTooltip?: boolean;
+  readonly focusChartXAxisHasGridLines?: boolean;
 }
 
 const focusMarginDefault = {
@@ -179,12 +184,14 @@ function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
   );
 
   const handleHoverTradeTooltip = useCallback(
-    (_: unknown, moreProps: HoverTradeMoreProps) => {
+    (_: MouseEvent, moreProps: HoverTradeMoreProps) => {
       const nextHoveredTrade = chartTradeTooltip.resolveHoveredTrade(
         moreProps,
         { tradeMarkerRadius, tradeTooltipHitPadding },
+        formatTradeTooltipTxt,
       );
 
+      if (!isDisplayTradeTooltip) return;
       setHoveredTrade((currentHoveredTrade) => {
         if (
           currentHoveredTrade?.price === nextHoveredTrade?.price &&
@@ -202,20 +209,6 @@ function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
 
   const renderHoveredTradeTooltip = chartTradeTooltip.render(hoveredTrade);
 
-  const tradeMarkerProps = useMemo(
-    () => ({
-      r: tradeMarkerRadius,
-      fillStyle: (datum: T) => {
-        if (datum.trade?.action === 'buy') return '#16a34a';
-        if (datum.trade?.action === 'sell') return '#dc2626';
-        return 'none';
-      },
-      strokeStyle: '#ffffff',
-      strokeWidth: 1,
-    }),
-    [],
-  );
-
   const {
     data: initialData,
     height,
@@ -223,13 +216,29 @@ function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
     width,
     margin,
     tickFormat,
+    tradeMarkerFill,
+    formatTradeTooltipTxt,
+    isDisplayTradeTooltip = true,
     ctxBrushStrokeStyle = '#2563eb',
     ctxLineStrokeStyle = '#2563eb',
     ctxBrushFillStyle = 'rgba(37, 99, 235, 0.18)',
     ctxBrushMinSelectionSize = 5,
     ctxXAxisShowGridLines = true,
+    focusChartXAxisHasGridLines = true,
     ...rest
   } = props;
+
+  const tradeMarkerProps = useMemo(
+    () => ({
+      r: tradeMarkerRadius,
+      fillStyle: tradeMarkerFill
+        ? (datum: T) => tradeMarkerFill(datum.trade?.action)
+        : undefined,
+      strokeStyle: '#ffffff',
+      strokeWidth: 1,
+    }),
+    [],
+  );
 
   const focusMargin = margin
     ? {
@@ -279,13 +288,16 @@ function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
         margin={focusMargin}
         data={data}
         displayXAccessor={displayXAccessor}
-        seriesName="Data"
+        seriesName="FocusChartData"
         xScale={xScale}
         xAccessor={xAccessor}
         xExtents={currentFocusExtents}
       >
         <Chart id={1} yExtents={yAccessor}>
-          <XAxis tickFormat={tickFormat} showGridLines />
+          <XAxis
+            tickFormat={tickFormat}
+            showGridLines={focusChartXAxisHasGridLines}
+          />
           <YAxis axisAt="left" orient="left" />
           <LineSeries yAccessor={yAccessor} {...rest} />
           <ScatterSeries
@@ -311,7 +323,7 @@ function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
         margin={ctxMargin}
         data={data}
         displayXAccessor={displayXAccessor}
-        seriesName="ContextData"
+        seriesName="ContextChartData"
         xScale={xScale}
         xAccessor={xAccessor}
         xExtents={ctxExtents}
