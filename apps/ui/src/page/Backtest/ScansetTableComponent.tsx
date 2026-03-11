@@ -1,6 +1,15 @@
-import type { ViewModel } from '#page/Backtest/BacktestPresenter';
+import {
+  BacktestPresenter,
+  type BacktestPresenterVm,
+} from '#page/Backtest/BacktestPresenter';
 
-function ScansetTableComponent({ children }: { children: ViewModel }) {
+function ScansetTableComponent({
+  presenter,
+  children,
+}: {
+  presenter: BacktestPresenter;
+  children: BacktestPresenterVm['scansets'];
+}) {
   return (
     <>
       <h2 className="text-3xl/20">Select a dataset</h2>
@@ -26,8 +35,16 @@ function ScansetTableComponent({ children }: { children: ViewModel }) {
                       <input
                         id={dataSetRange.key}
                         name="dataSetRange"
-                        onClick={(evt) => {
-                          console.log('evt', evt);
+                        onClick={() => {
+                          const { asset, currency, exchange, from, to } =
+                            dataSetRange;
+                          presenter.handleScansetSelectChange({
+                            asset,
+                            currency,
+                            exchange,
+                            from,
+                            to,
+                          });
                         }}
                         type="radio"
                         className="radio"
@@ -42,10 +59,10 @@ function ScansetTableComponent({ children }: { children: ViewModel }) {
                     <p>{dataSetRange.asset}</p>
                   </td>
                   <td>
-                    <p>{dataSetRange.from}</p>
+                    <p>{dataSetRange.fromLabel}</p>
                   </td>
                   <td>
-                    <p>{dataSetRange.to}</p>
+                    <p>{dataSetRange.toLabel}</p>
                   </td>
                   <td>
                     <p>{dataSetRange.duration}</p>
