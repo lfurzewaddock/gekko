@@ -141,14 +141,54 @@ export class BacktestRepository {
     return true;
   };
 
+  assertNever = (value: never): never => {
+    throw new Error(`Unhandled strategy: ${String(value)}`);
+  };
+
   strategyParamMapper = <T extends StrategyIdent>(
     strategy: T,
     params: BacktestResultResponseWithStrategy<T>['strategyParameters'],
   ): BacktestStrategyReport<T>['strategyParameters'] => {
     switch (strategy) {
-      case 'MACD': {
+      case 'CCI': {
+        const { constant, history, thresholds } =
+          params as BacktestResultResponseWithStrategy<'CCI'>['strategyParameters'];
+        const { down, up, persistence } = thresholds;
+
+        return {
+          constant,
+          history,
+          thresholds: {
+            down,
+            up,
+            persistence,
+          },
+        } as BacktestStrategyReport<T>['strategyParameters'];
+      }
+      case 'DEBUG_single-advice':
+      case 'DEBUG_toggle-advice':
+      case 'noop': {
+        return {} as BacktestStrategyReport<T>['strategyParameters'];
+      }
+      case 'DEMA': {
+        const { weight, thresholds } =
+          params as BacktestResultResponseWithStrategy<'DEMA'>['strategyParameters'];
+        const { down, up } = thresholds;
+
+        return {
+          weight,
+          thresholds: {
+            down,
+            up,
+          },
+        } as BacktestStrategyReport<T>['strategyParameters'];
+      }
+      case 'MACD':
+      case 'PPO': {
         const { short, long, signal, thresholds } =
-          params as BacktestResultResponseWithStrategy<'MACD'>['strategyParameters'];
+          params as BacktestResultResponseWithStrategy<
+            'MACD' | 'PPO'
+          >['strategyParameters'];
         const { down, up, persistence } = thresholds;
 
         return {
@@ -162,9 +202,12 @@ export class BacktestRepository {
           },
         } as BacktestStrategyReport<T>['strategyParameters'];
       }
-      case 'RSI': {
+      case 'RSI':
+      case 'StochRSI': {
         const { interval, thresholds } =
-          params as BacktestResultResponseWithStrategy<'RSI'>['strategyParameters'];
+          params as BacktestResultResponseWithStrategy<
+            'RSI' | 'StochRSI'
+          >['strategyParameters'];
         const { low, high, persistence } = thresholds;
 
         return {
@@ -176,8 +219,152 @@ export class BacktestRepository {
           },
         } as BacktestStrategyReport<T>['strategyParameters'];
       }
+      case 'TMA': {
+        const { short, medium, long } =
+          params as BacktestResultResponseWithStrategy<'TMA'>['strategyParameters'];
+
+        return {
+          short,
+          medium,
+          long,
+        } as BacktestStrategyReport<T>['strategyParameters'];
+      }
+      case 'TSI': {
+        const { short, long, thresholds } =
+          params as BacktestResultResponseWithStrategy<'TSI'>['strategyParameters'];
+        const { low, high, persistence } = thresholds;
+
+        return {
+          short,
+          long,
+          thresholds: {
+            low,
+            high,
+            persistence,
+          },
+        } as BacktestStrategyReport<T>['strategyParameters'];
+      }
+      case 'UO': {
+        const { first, second, third, thresholds } =
+          params as BacktestResultResponseWithStrategy<'UO'>['strategyParameters'];
+        const { low, high, persistence } = thresholds;
+        const { weight: weightFirst, period: periodFirst } = first;
+        const { weight: weightSecond, period: periodSecond } = second;
+        const { weight: weightThird, period: periodThird } = third;
+
+        return {
+          first: {
+            weight: weightFirst,
+            period: periodFirst,
+          },
+          second: {
+            weight: weightSecond,
+            period: periodSecond,
+          },
+          third: {
+            weight: weightThird,
+            period: periodThird,
+          },
+          thresholds: {
+            low,
+            high,
+            persistence,
+          },
+        } as BacktestStrategyReport<T>['strategyParameters'];
+      }
+      case 'custom': {
+        const { my_custom_setting } =
+          params as BacktestResultResponseWithStrategy<'custom'>['strategyParameters'];
+
+        return {
+          my_custom_setting,
+        } as BacktestStrategyReport<T>['strategyParameters'];
+      }
+      case 'noop': {
+        return {} as BacktestStrategyReport<T>['strategyParameters'];
+      }
+      case 'talib-macd':
+      case 'tulip-macd': {
+        const { parameters, thresholds } =
+          params as BacktestResultResponseWithStrategy<
+            'talib-macd' | 'tulip-macd'
+          >['strategyParameters'];
+        const { optInFastPeriod, optInSlowPeriod, optInSignalPeriod } =
+          parameters;
+        const { down, up } = thresholds;
+
+        return {
+          parameters: {
+            optInFastPeriod,
+            optInSlowPeriod,
+            optInSignalPeriod,
+          },
+          thresholds: {
+            down,
+            up,
+          },
+        } as BacktestStrategyReport<T>['strategyParameters'];
+      }
+      case 'tulip-adx': {
+        const { historySize, optInTimePeriod, candleSize, thresholds } =
+          params as BacktestResultResponseWithStrategy<'tulip-adx'>['strategyParameters'];
+        const { down, up } = thresholds;
+
+        return {
+          historySize,
+          optInTimePeriod,
+          candleSize,
+          thresholds: {
+            down,
+            up,
+          },
+        } as BacktestStrategyReport<T>['strategyParameters'];
+      }
+      case 'tulip-multi-strat': {
+        const {
+          optInTimePeriod,
+          optInFastPeriod,
+          optInSlowPeriod,
+          optInSignalPeriod,
+          candleSize,
+          historySize,
+          up,
+          down,
+          macd_up,
+          macd_down,
+        } =
+          params as BacktestResultResponseWithStrategy<'tulip-multi-strat'>['strategyParameters'];
+
+        return {
+          optInTimePeriod,
+          optInFastPeriod,
+          optInSlowPeriod,
+          optInSignalPeriod,
+          candleSize,
+          historySize,
+          up,
+          down,
+          macd_up,
+          macd_down,
+        } as BacktestStrategyReport<T>['strategyParameters'];
+      }
+      case 'varPPO': {
+        const { momentum, thresholds } =
+          params as BacktestResultResponseWithStrategy<'varPPO'>['strategyParameters'];
+        const { weightLow, weightHigh, persistence } = thresholds;
+
+        return {
+          momentum,
+          thresholds: {
+            weightLow,
+            weightHigh,
+            persistence,
+          },
+        } as BacktestStrategyReport<T>['strategyParameters'];
+      }
+
       default:
-        return params as BacktestStrategyReport<T>['strategyParameters'];
+        return this.assertNever(strategy as never);
     }
   };
 
@@ -260,10 +447,10 @@ export class BacktestRepository {
           profit,
         }) => ({
           id,
-          entryAt,
+          entryAt: new UTCDate(fromUnixTime(entryAt)),
           entryPrice,
           entryBalance,
-          exitAt,
+          exitAt: new UTCDate(fromUnixTime(exitAt)),
           exitPrice,
           exitBalance,
           duration,

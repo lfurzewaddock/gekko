@@ -17,19 +17,13 @@ import { UTCDate } from '@date-fns/utc';
 import StaticAutoSizer from '../layout/StaticAutoSizer';
 import * as chartTradeTooltip from '#component/chart/chartTradeTooltip.tsx';
 
+import type { TradeAction } from '#core/domain/Backtest';
+
 export interface ChartData {
   date: UTCDate;
   open: number;
-  trade: { date: UTCDate; price: number; action: 'buy' | 'sell' } | null;
+  trade: { date: UTCDate; price: number; action: TradeAction } | null;
 }
-
-export interface ChartMargin {
-  top?: number;
-  right?: number;
-  bottom?: number;
-  left?: number;
-}
-
 export interface HoveredTrade {
   readonly xValue: number | Date;
   readonly price: number;
@@ -58,6 +52,13 @@ interface FocusChartInteractionMoreProps {
 interface FocusContextState {
   readonly focusExtents?: [XValue, XValue];
   readonly hoveredTrade?: HoveredTrade;
+}
+
+interface ChartMargin {
+  top?: number;
+  right?: number;
+  bottom?: number;
+  left?: number;
 }
 
 interface FocusCtxProps {

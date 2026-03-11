@@ -39,17 +39,26 @@ interface TradingAdvisorConfig {
 // ============================================
 // Strategy Configs
 // ============================================
-interface StratUnknown {}
-
-interface StratThresholdsRSI {
-  low: number;
-  high: number;
+interface StratThresholdsCCI {
+  up: number;
+  down: number;
   persistence: number;
 }
 
-interface StratCfgRSI {
-  interval: number;
-  thresholds: StratThresholdsRSI;
+interface StratCfgCCI {
+  constant: 0.015;
+  history: 90;
+  thresholds: StratThresholdsCCI;
+}
+
+interface StratThresholdsDEMA {
+  up: number;
+  down: number;
+}
+
+interface StratCfgDEMA {
+  weight: number;
+  thresholds: StratThresholdsDEMA;
 }
 
 interface StratThresholdsMACD {
@@ -58,6 +67,7 @@ interface StratThresholdsMACD {
   persistence: number;
 }
 
+interface StratCfgPPO extends StratCfgMACD {}
 interface StratCfgMACD {
   short: number;
   long: number;
@@ -65,25 +75,123 @@ interface StratCfgMACD {
   thresholds: StratThresholdsMACD;
 }
 
+interface StratThresholdsTSI extends StratThresholdsRSI {}
+interface StratThresholdsUO extends StratThresholdsRSI {}
+interface StratThresholdsRSI {
+  low: number;
+  high: number;
+  persistence: number;
+}
+
+interface StratCfgStochRSI extends StratCfgRSI {}
+interface StratCfgRSI {
+  interval: number;
+  thresholds: StratThresholdsRSI;
+}
+
+interface StratCfgTMA {
+  short: number;
+  medium: number;
+  long: number;
+}
+
+interface StratCfgTSI {
+  short: number;
+  long: number;
+  thresholds: StratThresholdsTSI;
+}
+
+interface StratStageUO {
+  weight: number;
+  period: number;
+}
+
+interface StratCgfUO {
+  first: StratStageUO;
+  second: StratStageUO;
+  third: StratStageUO;
+  thresholds: StratThresholdsUO;
+}
+
+interface StratCfgCustom {
+  my_custom_setting: number;
+}
+
+interface StratNone {}
+
+interface StratThresholdsTulipMACD extends StratThresholdsTalibMACD {}
+interface StratThresholdsTulipADX extends StratThresholdsTalibMACD {}
+interface StratThresholdsTalibMACD {
+  down: number;
+  up: number;
+}
+
+interface StratParamsTulipMACD extends StratParamsTalibMACD {}
+interface StratParamsTalibMACD {
+  optInFastPeriod: number;
+  optInSlowPeriod: number;
+  optInSignalPeriod: number;
+}
+interface StratCfgTalibMACD {
+  parameters: StratParamsTalibMACD;
+  thresholds: StratThresholdsTalibMACD;
+}
+
+interface StratCfgTulipADX {
+  historySize: number;
+  optInTimePeriod: number;
+  candleSize: number;
+  thresholds: StratThresholdsTulipADX;
+}
+
+interface StratCfgTulipMACD {
+  parameters: StratParamsTulipMACD;
+  thresholds: StratThresholdsTulipMACD;
+}
+
+interface StratCfgTulipMultiStrat {
+  optInTimePeriod: number;
+  optInFastPeriod: number;
+  optInSlowPeriod: number;
+  optInSignalPeriod: number;
+  candleSize: number;
+  historySize: number;
+  up: number;
+  down: number;
+  macd_up: number;
+  macd_down: number;
+}
+
+interface StratThresholdsVarPPO {
+  weightLow: number;
+  weightHigh: number;
+  persistence: number;
+}
+
+interface StratCfgVarPPO {
+  momentum: 'TSI' | 'RSI' | 'UO';
+  thresholds: StratThresholdsVarPPO;
+}
+
 export interface StrategyCfgMap {
-  CCI: StratUnknown;
-  'DEBUG_single-advice': StratUnknown;
-  'DEBUG_toggle-advice': StratUnknown;
-  DEMA: StratUnknown;
+  CCI: StratCfgCCI;
+  'DEBUG_single-advice': StratNone;
+  'DEBUG_toggle-advice': StratNone;
+  DEMA: StratCfgDEMA;
   MACD: StratCfgMACD;
-  PPO: StratUnknown;
+  PPO: StratCfgPPO;
   RSI: StratCfgRSI;
-  StochRSI: StratUnknown;
-  TMA: StratUnknown;
-  TSI: StratUnknown;
-  UO: StratUnknown;
-  custom: StratUnknown;
-  noop: StratUnknown;
-  'talib-macd': StratUnknown;
-  'tulip-adx': StratUnknown;
-  'tulip-macd': StratUnknown;
-  'tulip-multi-strat': StratUnknown;
-  varPPO: StratUnknown;
+  StochRSI: StratCfgStochRSI;
+  TMA: StratCfgTMA;
+  TSI: StratCfgTSI;
+  UO: StratCgfUO;
+  custom: StratCfgCustom;
+  noop: StratNone;
+  'talib-macd': StratCfgTalibMACD;
+  'tulip-adx': StratCfgTulipADX;
+  'tulip-macd': StratCfgTulipMACD;
+  'tulip-multi-strat': StratCfgTulipMultiStrat;
+  varPPO: StratCfgVarPPO;
 }
 // ============================================
 

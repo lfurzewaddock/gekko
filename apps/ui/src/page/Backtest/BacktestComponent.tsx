@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import { useDependency } from '#core/hooks/use-dependency';
-import container from '#ioc';
+// import container from '#ioc';
 import ScansetTableComponent from './ScansetTableComponent';
 
 import type { ContainerDefinition } from '#ioc';
@@ -21,10 +21,10 @@ function PageBacktest() {
       </ScansetTableComponent>
       <BacktestFormComponent />
       <BacktestChartComponent />
-      <div>
+      {/* <div>
         <h2>IoC Container Registration(s)</h2>
         <pre>{JSON.stringify(container.registrations, null, 2)}</pre>
-      </div>
+      </div> */}
       <div className="fab">
         <button
           disabled={!presenter.viewModel.isEnableBtnBackest}
