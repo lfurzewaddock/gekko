@@ -4,6 +4,7 @@ import {
   isValidElement,
   type ReactElement,
 } from 'react';
+import clsx from 'clsx';
 
 const widthClasses: Record<string, string> = {
   '1/1': 'w-full',
@@ -24,23 +25,28 @@ function getWidthCssClass(childCount: number): string {
   const numerator = 1;
   const denominator = childCount;
   const fraction = `${numerator}/${denominator}`;
-  return widthClasses[fraction] ?? 'w-full';
+  return widthClasses[fraction] ?? 'md:w-full';
 }
 
 function SplitScreenComponent({
   children,
+  className,
 }: {
   children: ReactElement<{ className?: string }>[];
+  className?: string | string[];
 }) {
   const totalChild = Children.count(children);
   const widthClass = getWidthCssClass(totalChild);
 
   return (
-    <div className="flex flex-wrap md:flex-nowrap">
+    <div className={clsx([className, 'flex flex-wrap md:flex-nowrap'])}>
       {Children.map(children, (child) => {
         if (isValidElement(child)) {
           return cloneElement(child, {
-            className: `w-full md:${widthClass}`,
+            className: clsx([
+              `md:w-full md:${widthClass}`,
+              child.props.className,
+            ]),
           });
         }
         return child;
