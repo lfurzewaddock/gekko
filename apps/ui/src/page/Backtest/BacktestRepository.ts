@@ -49,6 +49,7 @@ export class BacktestRepository {
   backtestStrategyReport: BacktestStrategyReport<
     typeof this.strategySelected
   > | null = null;
+  backtestingStatus: 'initialised' | 'running' | 'complete' = 'initialised';
 
   constructor(opts: ContainerDefinition) {
     this.httpGateway = opts.HttpGateway;
@@ -61,6 +62,7 @@ export class BacktestRepository {
       candleSize: observable,
       candleSizeUnit: observable,
       backtestStrategyReport: observable,
+      backtestingStatus: observable,
       scansetActiveChangeHandler: action,
       strategyActiveChangeHandler: action,
       historySizeChangeHandler: action,
@@ -550,10 +552,14 @@ export class BacktestRepository {
     this.backtestStrategyReport = this.transformBacktestReportApiDto(
       backtestApiResPayload,
     );
+    this.backtestingStatus = 'complete';
   };
 
   runBacktest = async () => {
     if (this.scansetSelected == null) throw new Error('no scanset selected!');
+
+    this.backtestingStatus = 'running';
+
     const backtestCfgBase: Omit<
       BaseBacktestCfg,
       'watch' | 'backtest' | 'tradingAdvisor'

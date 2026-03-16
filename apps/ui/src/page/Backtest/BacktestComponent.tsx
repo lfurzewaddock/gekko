@@ -6,6 +6,7 @@ import ScansetTableComponent from './ScansetTableComponent';
 import type { ContainerDefinition } from '#ioc';
 import BacktestFormComponent from '#page/Backtest/BacktestFormComponent/BacktestFormComponent';
 import BacktestChartComponent from '#page/Backtest/BacktestChartComponent/BacktestChartComponent';
+import BacktestPerfComponent from '#page/Backtest/BacktestPerfComponent/BacktestPerfComponent';
 
 function PageBacktest() {
   const presenter =
@@ -20,6 +21,10 @@ function PageBacktest() {
         {presenter.viewModel.scansets}
       </ScansetTableComponent>
       <BacktestFormComponent />
+      <BacktestPerfComponent
+        performanceReport={presenter.viewModel.performanceReport}
+        backtestingStatus={presenter.viewModel.backtestingStatus}
+      />
       <BacktestChartComponent />
       {/* <div>
         <h2>IoC Container Registration(s)</h2>

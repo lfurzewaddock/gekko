@@ -42,6 +42,8 @@ export class BacktestPresenter {
         ) ?? [],
       isEnableBtnBackest: this.backtestRepository.scansetSelected != null,
       scansetSelected: this.backtestRepository.scansetSelected,
+      performanceReport: this.preparePerfReport(),
+      backtestingStatus: this.backtestRepository.backtestingStatus,
     };
   }
 
@@ -51,6 +53,56 @@ export class BacktestPresenter {
       viewModel: computed,
     });
   }
+
+  preparePerfReport = () => {
+    if (
+      this.backtestRepository.backtestStrategyReport?.performanceReport == null
+    )
+      return null;
+    const {
+      startTime,
+      endTime,
+      timespan,
+      market,
+      balance,
+      profit,
+      relativeProfit,
+      yearlyProfit,
+      relativeYearlyProfit,
+      startPrice,
+      endPrice,
+      trades,
+      startBalance,
+      exposure,
+      sharpe,
+      downside,
+      ratioRoundTrips,
+      alpha,
+    } = this.backtestRepository.backtestStrategyReport.performanceReport;
+    const dateTimeFormat = 'yyyy-MM-dd kk:mm:ss';
+    return {
+      startTime: format(startTime, dateTimeFormat),
+      endTime: format(endTime, dateTimeFormat),
+      timespan,
+      market: `${Number(market).toFixed(5)}%`,
+      balance: Number(balance).toFixed(5),
+      profit,
+      relativeProfit: `${Number(relativeProfit).toFixed(5)}%`,
+      yearlyProfit,
+      relativeYearlyProfit,
+      startPrice: Number(startPrice).toFixed(5),
+      endPrice: Number(endPrice).toFixed(5),
+      trades,
+      startBalance: Number(startBalance).toFixed(5),
+      exposure,
+      sharpe: Number(sharpe).toFixed(2),
+      downside,
+      ratioRoundTrips,
+      alpha,
+      isNegativeProfit: relativeProfit < 0,
+      isNegativeMarket: market < 0,
+    };
+  };
 
   handleScansetSelectChange = ({
     exchange,
