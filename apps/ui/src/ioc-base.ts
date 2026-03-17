@@ -6,8 +6,8 @@ import { NavigationRepository } from '#layout/NavRepository';
 import { NavigationPresenter } from '#layout/NavPresenter';
 import { BacktestRepository } from '#page/Backtest/BacktestRepository';
 import { BacktestPresenter } from '#page/Backtest/BacktestPresenter';
-import { BacktestFormPresenter } from '#page/Backtest/BacktestFormComponent/BacktestFormPresenter';
-import { BacktestChartPresenter } from '#page/Backtest/BacktestChartComponent/BacktestChartPresenter';
+import { BacktestFormPresenter } from '#page/Backtest/BacktestForm/BacktestFormPresenter';
+import { BacktestChartPresenter } from '#page/Backtest/BacktestChart/BacktestChartPresenter';
 
 export interface ContainerDefinition {
   RouterRepository: RouterRepository;
