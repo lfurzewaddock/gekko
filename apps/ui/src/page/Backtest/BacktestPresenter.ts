@@ -1,6 +1,7 @@
 import { makeObservable, computed } from 'mobx';
 import { intervalToDuration, format, formatDuration } from 'date-fns';
 import type { UTCDate } from '@date-fns/utc';
+import humanizeDuration from 'humanize-duration';
 
 import type { ContainerDefinition } from '#ioc';
 
@@ -43,6 +44,7 @@ export class BacktestPresenter {
       isEnableBtnBackest: this.backtestRepository.scansetSelected != null,
       scansetSelected: this.backtestRepository.scansetSelected,
       performanceReport: this.preparePerfReport(),
+      roundtripsReport: this.prepareRoundtripsReport(),
       backtestingStatus: this.backtestRepository.backtestingStatus,
     };
   }
@@ -102,6 +104,42 @@ export class BacktestPresenter {
       isNegativeProfit: relativeProfit < 0,
       isNegativeMarket: market < 0,
     };
+  };
+
+  prepareRoundtripsReport = () => {
+    if (this.backtestRepository.backtestStrategyReport?.roundtrips == null)
+      return null;
+
+    return this.backtestRepository.backtestStrategyReport.roundtrips.map(
+      ({
+        id,
+        entryAt,
+        entryPrice,
+        entryBalance,
+        exitAt,
+        exitPrice,
+        exitBalance,
+        duration,
+        pnl,
+        profit,
+      }) => {
+        const dateTimeFormat = 'yyyy-MM-dd kk:mm:ss';
+        return {
+          id,
+          entryAt: format(entryAt, dateTimeFormat),
+          entryPrice,
+          entryBalance: Number(entryBalance).toFixed(3),
+          exitAt: format(exitAt, dateTimeFormat),
+          exitPrice,
+          exitBalance: Number(exitBalance).toFixed(3),
+          duration: humanizeDuration(duration),
+          pnl: Number(Math.abs(pnl)).toFixed(2),
+          profit: `${Number(profit).toFixed(2)}%`,
+          isNegativePnl: pnl < 0,
+          isNegativeProfit: profit < 0,
+        };
+      },
+    );
   };
 
   handleScansetSelectChange = ({

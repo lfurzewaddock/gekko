@@ -1,12 +1,12 @@
 import { observer } from 'mobx-react';
 import { useDependency } from '#core/hooks/use-dependency';
-// import container from '#ioc';
-import ScansetTableComponent from './ScansetTableComponent';
 
 import type { ContainerDefinition } from '#ioc';
-import BacktestFormComponent from '#page/Backtest/BacktestFormComponent/BacktestFormComponent';
-import BacktestChartComponent from '#page/Backtest/BacktestChartComponent/BacktestChartComponent';
-import BacktestPerfComponent from '#page/Backtest/BacktestPerfComponent/BacktestPerfComponent';
+import BacktestFormComponent from '#page/Backtest/BacktestForm/BacktestFormComponent.tsx';
+import BacktestChartComponent from '#page/Backtest/BacktestChart/BacktestChartComponent.tsx';
+import BacktestPerfComponent from '#page/Backtest/BacktestPerf/BacktestPerfComponent.tsx';
+import ScansetTableComponent from '#page/Backtest/ScansetTableComponent';
+import BacktestRoundtripsComponent from '#page/Backtest/BacktestRoundtrips/BacktestRoundtripsComponent';
 
 function PageBacktest() {
   const presenter =
@@ -26,6 +26,9 @@ function PageBacktest() {
         backtestingStatus={presenter.viewModel.backtestingStatus}
       />
       <BacktestChartComponent />
+      <BacktestRoundtripsComponent>
+        {presenter.viewModel.roundtripsReport}
+      </BacktestRoundtripsComponent>
       {/* <div>
         <h2>IoC Container Registration(s)</h2>
         <pre>{JSON.stringify(container.registrations, null, 2)}</pre>
