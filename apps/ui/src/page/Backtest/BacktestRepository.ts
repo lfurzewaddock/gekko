@@ -3,7 +3,7 @@ import TOML from 'smol-toml';
 import { UTCDate } from '@date-fns/utc';
 import { fromUnixTime, parse } from 'date-fns';
 
-import { getErrorMessage } from '#util/error';
+import { ok, getErrorMessage, type Result } from '#util/error';
 import { isObjEmpty } from '#util/index.ts';
 
 import type { ContainerDefinition } from '#ioc';
@@ -46,10 +46,9 @@ export class BacktestRepository {
   // _candleSizeMinutes =
   //   CANDLE_SIZE_DEFAULT * MINUTES_PER_UNIT[CANDLE_SIZE_UNIT_DEFAULT];
   historySize = HISTORY_SIZE_DEFAULT;
-  backtestStrategyReport: BacktestStrategyReport<
-    typeof this.strategySelected
-  > | null = null;
+  backtestStrategyReport: BacktestStrategyReport<typeof this.strategySelected> | null = null;
   backtestingStatus: 'initialised' | 'running' | 'complete' = 'initialised';
+  ioErrors: Extract<Result<unknown, Error>, { success: false }>[] = [];
 
   constructor(opts: ContainerDefinition) {
     this.httpGateway = opts.HttpGateway;
@@ -63,6 +62,7 @@ export class BacktestRepository {
       candleSizeUnit: observable,
       backtestStrategyReport: observable,
       backtestingStatus: observable,
+      ioErrors: observable,
       scansetActiveChangeHandler: action,
       strategyActiveChangeHandler: action,
       historySizeChangeHandler: action,
@@ -113,10 +113,7 @@ export class BacktestRepository {
         console.warn('error, not an error thrown', e);
         throw new Error("parse TOML from '/strategies' API EP failed");
       }
-      console.error(
-        "parse TOML from '/strategies' API EP failed",
-        getErrorMessage(e),
-      );
+      console.error("parse TOML from '/strategies' API EP failed", getErrorMessage(e));
       return {};
     }
   };
@@ -131,10 +128,7 @@ export class BacktestRepository {
     if (isObjEmpty(cfg.backtest.daterange)) return false;
     if (!cfg.watch) return false;
     if (!cfg.tradingAdvisor) return false;
-    if (
-      Number.isNaN(cfg.tradingAdvisor.candleSize) ||
-      cfg.tradingAdvisor.candleSize == 0
-    )
+    if (Number.isNaN(cfg.tradingAdvisor.candleSize) || cfg.tradingAdvisor.candleSize == 0)
       return false;
 
     const strat = cfg.tradingAdvisor.method;
@@ -187,10 +181,9 @@ export class BacktestRepository {
       }
       case 'MACD':
       case 'PPO': {
-        const { short, long, signal, thresholds } =
-          params as BacktestResultResponseWithStrategy<
-            'MACD' | 'PPO'
-          >['strategyParameters'];
+        const { short, long, signal, thresholds } = params as BacktestResultResponseWithStrategy<
+          'MACD' | 'PPO'
+        >['strategyParameters'];
         const { down, up, persistence } = thresholds;
 
         return {
@@ -206,10 +199,9 @@ export class BacktestRepository {
       }
       case 'RSI':
       case 'StochRSI': {
-        const { interval, thresholds } =
-          params as BacktestResultResponseWithStrategy<
-            'RSI' | 'StochRSI'
-          >['strategyParameters'];
+        const { interval, thresholds } = params as BacktestResultResponseWithStrategy<
+          'RSI' | 'StochRSI'
+        >['strategyParameters'];
         const { low, high, persistence } = thresholds;
 
         return {
@@ -287,12 +279,10 @@ export class BacktestRepository {
       }
       case 'talib-macd':
       case 'tulip-macd': {
-        const { parameters, thresholds } =
-          params as BacktestResultResponseWithStrategy<
-            'talib-macd' | 'tulip-macd'
-          >['strategyParameters'];
-        const { optInFastPeriod, optInSlowPeriod, optInSignalPeriod } =
-          parameters;
+        const { parameters, thresholds } = params as BacktestResultResponseWithStrategy<
+          'talib-macd' | 'tulip-macd'
+        >['strategyParameters'];
+        const { optInFastPeriod, optInSlowPeriod, optInSignalPeriod } = parameters;
         const { down, up } = thresholds;
 
         return {
@@ -334,8 +324,7 @@ export class BacktestRepository {
           down,
           macd_up,
           macd_down,
-        } =
-          params as BacktestResultResponseWithStrategy<'tulip-multi-strat'>['strategyParameters'];
+        } = params as BacktestResultResponseWithStrategy<'tulip-multi-strat'>['strategyParameters'];
 
         return {
           optInTimePeriod,
@@ -370,14 +359,11 @@ export class BacktestRepository {
     }
   };
 
-  transformBacktestReportApiDto = <
-    T extends StrategyIdent = typeof this.strategySelected,
-  >(
+  transformBacktestReportApiDto = <T extends StrategyIdent = typeof this.strategySelected>(
     apiPayload: BacktestResultResponseWithStrategy<T>,
   ): BacktestStrategyReport<T> => {
     const { exchange, currency, asset } = apiPayload.market;
-    const { enabled, method, candleSize, historySize } =
-      apiPayload.tradingAdvisor;
+    const { enabled, method, candleSize, historySize } = apiPayload.tradingAdvisor;
     const {
       startTime,
       endTime,
@@ -411,10 +397,7 @@ export class BacktestRepository {
         candleSize,
         historySize,
       },
-      strategyParameters: this.strategyParamMapper(
-        method,
-        apiPayload.strategyParameters,
-      ),
+      strategyParameters: this.strategyParamMapper(method, apiPayload.strategyParameters),
       performanceReport: {
         startTime: parse(startTime, 'yyyy-MM-dd HH:mm:ss', new UTCDate()),
         endTime: parse(endTime, 'yyyy-MM-dd HH:mm:ss', new UTCDate()),
@@ -502,24 +485,18 @@ export class BacktestRepository {
 
   load = async () => {
     const { signal } = new AbortController();
-    const apiCalls = [
-      this.httpGateway.post<Record<never, never>, ApiDtoScansets>(
-        '/scansets',
-        { signal },
-        {},
-      ),
-      this.httpGateway.get<DtoStrategyDataSet[]>('/strategies', { signal }),
-    ];
+    const apiCallScansets = this.httpGateway.post<Record<never, never>, ApiDtoScansets>(
+      '/scansets',
+      { signal },
+      {},
+    );
+    const apiCallStrategies = this.httpGateway.get<DtoStrategyDataSet[]>('/strategies', { signal });
 
-    const [scansetsDto, strategyParamsDto] = (await Promise.allSettled(
-      apiCalls,
-    )) as [
-      PromiseSettledResult<ApiDtoScansets>,
-      PromiseSettledResult<DtoStrategyDataSet<StrategyIdent>[]>,
-    ];
+    const scansetsDto = await apiCallScansets;
+    const strategyParamsDto = await apiCallStrategies;
 
-    if (scansetsDto.status === 'fulfilled') {
-      this.scansets = scansetsDto.value.datasets.map((scansetDto) => ({
+    if (scansetsDto.success) {
+      this.scansets = scansetsDto.payload.datasets.map((scansetDto) => ({
         exchange: scansetDto.exchange,
         currency: scansetDto.currency,
         asset: scansetDto.asset,
@@ -529,30 +506,36 @@ export class BacktestRepository {
         })),
       }));
     } else {
-      // TODO - handle status rejected with property reason
+      this.ioErrors.push(scansetsDto);
     }
 
-    if (strategyParamsDto.status === 'fulfilled') {
-      this.strategyParams = strategyParamsDto.value.map((strategyParamDto) => ({
+    if (strategyParamsDto.success) {
+      this.strategyParams = strategyParamsDto.payload.map((strategyParamDto) => ({
         name: strategyParamDto.name as StrategyIdent,
         params: this.parseStrategyParams(strategyParamDto.params),
       }));
     } else {
-      // TODO - handle status rejected with property reason
+      this.ioErrors.push(strategyParamsDto);
     }
   };
 
-  // TODO - handle errors
-  post = async (backtestCfg: BacktestApiReqPayload) => {
+  post = async (
+    backtestCfg: BacktestApiReqPayload,
+  ): Promise<Result<BacktestStrategyReport<StrategyIdent>, Error>> => {
     const { signal } = new AbortController();
-    const backtestApiResPayload = await this.httpGateway.post<
-      BacktestApiReqPayload,
-      BacktestApiResPayload
-    >('/backtest', { signal }, backtestCfg);
-    this.backtestStrategyReport = this.transformBacktestReportApiDto(
-      backtestApiResPayload,
+
+    const response = await this.httpGateway.post<BacktestApiReqPayload, BacktestApiResPayload>(
+      '/backtest',
+      { signal },
+      backtestCfg,
     );
+    if (!response.success) {
+      return response;
+    }
+
+    this.backtestStrategyReport = this.transformBacktestReportApiDto(response.payload);
     this.backtestingStatus = 'complete';
+    return ok(this.backtestStrategyReport, response.status);
   };
 
   runBacktest = async () => {
@@ -560,10 +543,7 @@ export class BacktestRepository {
 
     this.backtestingStatus = 'running';
 
-    const backtestCfgBase: Omit<
-      BaseBacktestCfg,
-      'watch' | 'backtest' | 'tradingAdvisor'
-    > = {
+    const backtestCfgBase: Omit<BaseBacktestCfg, 'watch' | 'backtest' | 'tradingAdvisor'> = {
       paperTrader: {
         // TODO: get from API TOML
         feeMaker: 0.25,
@@ -620,6 +600,6 @@ export class BacktestRepository {
 
     backtestCfg.valid = this.validateCfg(backtestCfg);
 
-    this.post(backtestCfg);
+    return this.post(backtestCfg);
   };
 }
