@@ -8,6 +8,8 @@ import { BacktestRepository } from '#page/Backtest/BacktestRepository';
 import { BacktestPresenter } from '#page/Backtest/BacktestPresenter';
 import { BacktestFormPresenter } from '#page/Backtest/BacktestForm/BacktestFormPresenter';
 import { BacktestChartPresenter } from '#page/Backtest/BacktestChart/BacktestChartPresenter';
+import { MessagesPresenter } from '#core/Messages/MessagesPresenter';
+import { MessagesRepository } from '#core/Messages/MessagesRepository';
 
 export interface ContainerDefinition {
   RouterRepository: RouterRepository;
@@ -19,6 +21,8 @@ export interface ContainerDefinition {
   BacktestPresenter: BacktestPresenter;
   BacktestFormPresenter: BacktestFormPresenter;
   BacktestChartPresenter: BacktestChartPresenter;
+  MessagesPresenter: MessagesPresenter;
+  MessagesRepository: MessagesRepository;
 }
 
 export class BaseIOC {
@@ -35,12 +39,14 @@ export class BaseIOC {
       RouterRepository: asClass(RouterRepository).singleton(),
       NavigationRepository: asClass(NavigationRepository).singleton(),
       Router: asClass(Router).singleton(),
+      BacktestRepository: asClass(BacktestRepository).singleton(),
+      MessagesRepository: asClass(MessagesRepository).singleton(),
       AppPresenter: asClass(AppPresenter),
       NavigationPresenter: asClass(NavigationPresenter),
-      BacktestRepository: asClass(BacktestRepository).singleton(),
       BacktestPresenter: asClass(BacktestPresenter),
       BacktestFormPresenter: asClass(BacktestFormPresenter),
       BacktestChartPresenter: asClass(BacktestChartPresenter),
+      MessagesPresenter: asClass(MessagesPresenter),
     });
     return this.container;
   };

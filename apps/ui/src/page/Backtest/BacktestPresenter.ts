@@ -1,13 +1,14 @@
-import { makeObservable, computed } from 'mobx';
+import { makeObservable, computed, reaction, type IReactionDisposer } from 'mobx';
 import { intervalToDuration, format, formatDuration } from 'date-fns';
 import type { UTCDate } from '@date-fns/utc';
 import humanizeDuration from 'humanize-duration';
 
 import type { ContainerDefinition } from '#ioc';
+import type { BacktestStrategyReport } from '#core/domain/Backtest.ts';
+import type { StrategyIdent } from '#core/domain/Strategy.ts';
+import type { Result } from '#util/error';
 
-export type BacktestPresenterVm = InstanceType<
-  typeof BacktestPresenter
->['viewModel'];
+export type BacktestPresenterVm = InstanceType<typeof BacktestPresenter>['viewModel'];
 
 type ScansetSelected = {
   exchange: string;
@@ -19,6 +20,8 @@ type ScansetSelected = {
 
 export class BacktestPresenter {
   backtestRepository;
+  messagesPresenter;
+  disposeIoErrorsReaction?: IReactionDisposer;
   get viewModel() {
     return {
       scansets:
@@ -34,10 +37,9 @@ export class BacktestPresenter {
               to: range.to,
               fromLabel: format(range.from, dateTimeFormat),
               toLabel: format(range.to, dateTimeFormat),
-              duration: formatDuration(
-                intervalToDuration({ start: range.from, end: range.to }),
-                { delimiter: ', ' },
-              ),
+              duration: formatDuration(intervalToDuration({ start: range.from, end: range.to }), {
+                delimiter: ', ',
+              }),
             };
           }),
         ) ?? [],
@@ -51,16 +53,21 @@ export class BacktestPresenter {
 
   constructor(opts: ContainerDefinition) {
     this.backtestRepository = opts.BacktestRepository;
+    this.messagesPresenter = opts.MessagesPresenter;
     makeObservable(this, {
       viewModel: computed,
     });
+    this.messagesPresenter.init();
+    this.disposeIoErrorsReaction = reaction(
+      () => this.backtestRepository.ioErrors.length,
+      this.handleIoErrors,
+      { fireImmediately: true },
+    );
+    this.reset();
   }
 
   preparePerfReport = () => {
-    if (
-      this.backtestRepository.backtestStrategyReport?.performanceReport == null
-    )
-      return null;
+    if (this.backtestRepository.backtestStrategyReport?.performanceReport == null) return null;
     const {
       startTime,
       endTime,
@@ -107,8 +114,7 @@ export class BacktestPresenter {
   };
 
   prepareRoundtripsReport = () => {
-    if (this.backtestRepository.backtestStrategyReport?.roundtrips == null)
-      return null;
+    if (this.backtestRepository.backtestStrategyReport?.roundtrips == null) return null;
 
     return this.backtestRepository.backtestStrategyReport.roundtrips.map(
       ({
@@ -142,13 +148,7 @@ export class BacktestPresenter {
     );
   };
 
-  handleScansetSelectChange = ({
-    exchange,
-    currency,
-    asset,
-    from,
-    to,
-  }: ScansetSelected) => {
+  handleScansetSelectChange = ({ exchange, currency, asset, from, to }: ScansetSelected) => {
     this.backtestRepository.scansetActiveChangeHandler({
       exchange,
       currency,
@@ -160,11 +160,32 @@ export class BacktestPresenter {
     });
   };
 
-  load = async () => {
-    await this.backtestRepository.load();
+  reset = () => {};
+
+  mapResultToErrorMsg<T, E>(result: Result<T, E>) {
+    if (result.status === 404) return ['NOT_FOUND'];
+    if (result.status === 500) return ['SERVER_UNAVAILABLE'];
+    return ['BACKTEST API CALL FAILED!'];
+  }
+
+  handleIoErrors = () => {
+    this.messagesPresenter.unpackRepoDmToVm<unknown>({
+      dm: this.backtestRepository.ioErrors,
+      mapResultToErrorMsg: this.mapResultToErrorMsg,
+    });
+  };
+
+  dispose = () => {
+    this.disposeIoErrorsReaction?.();
   };
 
   submit = async () => {
-    await this.backtestRepository.runBacktest();
+    const backtestResult = await this.backtestRepository.runBacktest();
+    this.messagesPresenter.init();
+    this.messagesPresenter.unpackRepoDmToVm<BacktestStrategyReport<StrategyIdent>>({
+      dm: backtestResult,
+      successMsg: 'Backtest completed successfully',
+      mapResultToErrorMsg: this.mapResultToErrorMsg,
+    });
   };
 }

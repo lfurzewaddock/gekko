@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { configure } from 'mobx';
 
 import { DependencyProvider } from '#core/providers/Injection';
+import { ValidationProvider } from '#core/providers/Validation';
 import container from '#ioc';
 import AppComponent from '#AppComponent';
 
@@ -22,7 +23,9 @@ if (rootEl) {
   root.render(
     <React.StrictMode>
       <DependencyProvider container={container}>
-        <AppComponent />
+        <ValidationProvider>
+          <AppComponent />
+        </ValidationProvider>
       </DependencyProvider>
     </React.StrictMode>,
   );
