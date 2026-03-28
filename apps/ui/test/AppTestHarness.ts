@@ -1,9 +1,11 @@
 import { asClass, type AwilixContainer } from 'awilix';
+import { jest } from '@jest/globals';
 
 import { BaseIOC } from '#ioc-base';
 import { FakeRouterGateway } from './routing/FakeRouterGateway';
 import { FakeHttpConfig } from './core/FakeHttpConfig';
 import { FakeHttpGateway } from './core/FakeHttpGateway';
+
 import type { ContainerDefinition } from '#ioc';
 
 export class AppTestHarness {
@@ -16,9 +18,7 @@ export class AppTestHarness {
 
   // 1. set up the app
   init() {
-    this.container = new BaseIOC().buildBaseTemplate();
-
-    this.container.register({
+    this.container = new BaseIOC().buildBaseTemplate().register({
       HttpConfig: asClass(FakeHttpConfig).singleton(),
       HttpGateway: asClass(FakeHttpGateway).singleton(),
       RouterGateway: asClass(FakeRouterGateway).singleton(),
@@ -28,13 +28,8 @@ export class AppTestHarness {
     this.router = this.container.resolve('Router');
     this.routerGateway = this.container.resolve('RouterGateway');
     this.routerRepository = this.container.resolve('RouterRepository');
-    this.routerGateway = this.container.resolve('RouterGateway');
-
-    let self = this;
-
-    this.routerGateway.goToId = jest.fn().mockImplementation((routeId) => {
-      // pivot
-      self.router.updateCurrentRoute(routeId);
+    jest.spyOn(this.routerGateway, 'goToId').mockImplementation(async (routeId) => {
+      this.router.updateCurrentRoute(routeId);
     });
   }
 

@@ -1,7 +1,7 @@
 import { makeObservable, computed, action } from 'mobx';
 
 import type { ContainerDefinition } from '#ioc';
-import type { RouteIdents } from '#routing/RouterRepository';
+import type { Route, RouteIdents } from '#routing/RouterRepository';
 
 export class Router {
   routerRepository;
@@ -18,7 +18,12 @@ export class Router {
     });
   }
 
-  updateCurrentRoute = async (newRouteId: RouteIdents | null) => {
+  // TODO: use type from source
+  updateCurrentRoute = async (
+    newRouteId: Route['routeId'],
+    params?: Route['params'],
+    query?: Route['query'],
+  ) => {
     let oldRoute = this.routerRepository.findRoute(this.currentRoute.routeId);
     let newRoute = this.routerRepository.findRoute(newRouteId);
     const routeChanged = oldRoute.routeId !== newRoute.routeId;
@@ -30,14 +35,13 @@ export class Router {
       if (newRoute.onEnter) newRoute.onEnter();
       this.routerRepository.currentRoute.routeId = newRoute.routeId;
       this.routerRepository.currentRoute.routeDef = newRoute.routeDef;
+      this.routerRepository.currentRoute.params = params;
+      this.routerRepository.currentRoute.query = query;
     }
   };
 
   registerRoutes = (onRouteChange: () => void) => {
-    this.routerRepository.registerRoutes(
-      this.updateCurrentRoute,
-      onRouteChange,
-    );
+    this.routerRepository.registerRoutes(this.updateCurrentRoute, onRouteChange);
   };
 
   goToId = async (routeId: RouteIdents) => {
@@ -48,3 +52,5 @@ export class Router {
     return this.routerRepository.getCurrentLocation();
   };
 }
+
+export type UpdateCurrentRoute = Router['updateCurrentRoute'];
