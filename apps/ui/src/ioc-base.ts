@@ -1,4 +1,4 @@
-import { createContainer, asClass } from 'awilix';
+import { type AwilixContainer, createContainer, asClass } from 'awilix';
 import { Router } from '#routing/Router';
 import { AppPresenter } from '#AppPresenter';
 import { RouterRepository } from '#routing/RouterRepository';
@@ -13,20 +13,20 @@ import { MessagesRepository } from '#core/Messages/MessagesRepository';
 
 export interface ContainerDefinition {
   RouterRepository: RouterRepository;
-  Router: Router;
-  AppPresenter: AppPresenter;
   NavigationRepository: NavigationRepository;
-  NavigationPresenter: NavigationPresenter;
+  Router: Router;
   BacktestRepository: BacktestRepository;
+  MessagesRepository: MessagesRepository;
+  AppPresenter: AppPresenter;
+  NavigationPresenter: NavigationPresenter;
   BacktestPresenter: BacktestPresenter;
   BacktestFormPresenter: BacktestFormPresenter;
   BacktestChartPresenter: BacktestChartPresenter;
   MessagesPresenter: MessagesPresenter;
-  MessagesRepository: MessagesRepository;
 }
 
 export class BaseIOC {
-  container;
+  container: AwilixContainer<ContainerDefinition>;
 
   constructor() {
     this.container = createContainer({

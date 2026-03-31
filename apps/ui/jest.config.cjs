@@ -25,4 +25,9 @@ module.exports = {
       '<rootDir>/tests/__mocks__/fileMock.js',
     '\\.(css|less|scss|sass)$': '<rootDir>/tests/__mocks__/styleMock.js',
   },
+  collectCoverage: true, // Optional: automatically run coverage on every test
+  collectCoverageFrom: [
+    'src/**/*.{js,jsx,ts,tsx}', // Include all JS/TS files in src
+    '!src/**/*.d.ts', // Exclude TypeScript declaration files
+  ],
 };

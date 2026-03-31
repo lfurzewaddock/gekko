@@ -1,4 +1,5 @@
 import { AppTestHarness } from '../AppTestHarness';
+import { beforeEach, describe, expect, it } from '@jest/globals';
 
 import type { RouteIdents } from '#routing/RouterRepository';
 import type { ContainerDefinition } from '#ioc';
@@ -17,9 +18,7 @@ describe('navigation', () => {
     appTestHarness = new AppTestHarness();
     appTestHarness.init();
     appTestHarness.bootStrap(() => {});
-    navigationPresenter = appTestHarness.container.resolve(
-      'NavigationPresenter',
-    );
+    navigationPresenter = appTestHarness.container.resolve('NavigationPresenter');
     router = appTestHarness.container.resolve('Router');
     routerGateway = appTestHarness.container.resolve('RouterGateway');
   });
@@ -27,18 +26,14 @@ describe('navigation', () => {
   describe('app load', () => {
     it('anchor: default redirect to homeLink state', () => {
       const testlinkId = 'homeLink';
-      expect(navigationPresenter.viewModel.currentSelectedVisibleName).toBe(
-        'Home > homeLink',
-      );
+      expect(navigationPresenter.viewModel.currentSelectedVisibleName).toBe('Home > homeLink');
       expect(navigationPresenter.viewModel.currentSelectedNode).toMatchObject({
         id: testlinkId,
         type: 'root',
         text: 'Home',
       });
       expect(
-        navigationPresenter.viewModel.navNodes.find(
-          (node) => node.id === testlinkId,
-        )?.isSelected,
+        navigationPresenter.viewModel.navNodes.find((node) => node.id === testlinkId)?.isSelected,
       ).toBe(true);
     });
   });
@@ -66,14 +61,12 @@ describe('navigation', () => {
         text: 'Backtest',
       });
       expect(
-        navigationPresenter.viewModel.navNodes.find(
-          (node) => node.id === testlinkIdFirst,
-        )?.isSelected,
+        navigationPresenter.viewModel.navNodes.find((node) => node.id === testlinkIdFirst)
+          ?.isSelected,
       ).toBe(true);
       expect(
-        navigationPresenter.viewModel.navNodes.find(
-          (node) => node.id === testlinkIdSecond,
-        )?.isSelected,
+        navigationPresenter.viewModel.navNodes.find((node) => node.id === testlinkIdSecond)
+          ?.isSelected,
       ).toBe(false);
 
       // pivot
@@ -81,23 +74,19 @@ describe('navigation', () => {
 
       expect(routerGateway.goToId).toHaveBeenLastCalledWith(testlinkIdSecond);
       // check menu
-      expect(navigationPresenter.viewModel.currentSelectedVisibleName).toBe(
-        'Home > homeLink',
-      );
+      expect(navigationPresenter.viewModel.currentSelectedVisibleName).toBe('Home > homeLink');
       expect(navigationPresenter.viewModel.currentSelectedNode).toMatchObject({
         id: testlinkIdSecond,
         type: 'root',
         text: 'Home',
       });
       expect(
-        navigationPresenter.viewModel.navNodes.find(
-          (node) => node.id === testlinkIdFirst,
-        )?.isSelected,
+        navigationPresenter.viewModel.navNodes.find((node) => node.id === testlinkIdFirst)
+          ?.isSelected,
       ).toBe(false);
       expect(
-        navigationPresenter.viewModel.navNodes.find(
-          (node) => node.id === testlinkIdSecond,
-        )?.isSelected,
+        navigationPresenter.viewModel.navNodes.find((node) => node.id === testlinkIdSecond)
+          ?.isSelected,
       ).toBe(true);
     });
   });

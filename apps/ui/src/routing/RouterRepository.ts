@@ -3,12 +3,18 @@ import { makeObservable, observable } from 'mobx';
 import type { ContainerDefinition } from '#ioc';
 import type { Match } from 'navigo';
 
+import type { UpdateCurrentRoute } from '#routing/Router';
+
 export type Route = {
   routeId: RouteIdents | null;
   routeDef?: {
     path: string;
     isSecure?: boolean;
   };
+  params?: {
+    [key: string]: string;
+  } | null;
+  query?: string;
   onEnter?: () => void;
   onLeave?: () => void;
 };
@@ -71,14 +77,7 @@ export class RouterRepository {
     });
   }
 
-  registerRoutes = (
-    updateCurrentRoute: (
-      newRouteId: RouteIdents | null,
-      params: any,
-      query: any,
-    ) => Promise<void>,
-    onRouteChanged: () => void,
-  ) => {
+  registerRoutes = (updateCurrentRoute: UpdateCurrentRoute, onRouteChanged: () => void) => {
     this.onRouteChanged = onRouteChanged;
     let routeConfig: Record<string, any> = {};
     this.routes.forEach((routeArg) => {
@@ -86,7 +85,7 @@ export class RouterRepository {
       routeConfig[route.routeDef?.path || ''] = {
         as: route.routeId,
         uses: (match: Match) => {
-          updateCurrentRoute(route.routeId, route.routeDef, match.queryString);
+          updateCurrentRoute(route.routeId, match.params, match.queryString);
         },
       };
     });
