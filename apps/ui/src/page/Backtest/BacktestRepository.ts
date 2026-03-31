@@ -1,4 +1,4 @@
-import { makeObservable, observable, action } from 'mobx';
+import { makeObservable, observable, action, runInAction } from 'mobx';
 import TOML from 'smol-toml';
 import { UTCDate } from '@date-fns/utc';
 import { fromUnixTime, parse } from 'date-fns';
@@ -495,28 +495,32 @@ export class BacktestRepository {
     const scansetsDto = await apiCallScansets;
     const strategyParamsDto = await apiCallStrategies;
 
-    if (scansetsDto.success) {
-      this.scansets = scansetsDto.payload.datasets.map((scansetDto) => ({
-        exchange: scansetDto.exchange,
-        currency: scansetDto.currency,
-        asset: scansetDto.asset,
-        ranges: scansetDto.ranges.map((range) => ({
-          from: new UTCDate(fromUnixTime(range.from)),
-          to: new UTCDate(fromUnixTime(range.to)),
-        })),
-      }));
-    } else {
-      this.ioErrors.push(scansetsDto);
-    }
+    // test support for [MobX] strict-mode,
+    // changing (observed) observable values without using an action
+    runInAction(() => {
+      if (scansetsDto && scansetsDto.success) {
+        this.scansets = scansetsDto.payload.datasets.map((scansetDto) => ({
+          exchange: scansetDto.exchange,
+          currency: scansetDto.currency,
+          asset: scansetDto.asset,
+          ranges: scansetDto.ranges.map((range) => ({
+            from: new UTCDate(fromUnixTime(range.from)),
+            to: new UTCDate(fromUnixTime(range.to)),
+          })),
+        }));
+      } else {
+        this.ioErrors.push(scansetsDto);
+      }
 
-    if (strategyParamsDto.success) {
-      this.strategyParams = strategyParamsDto.payload.map((strategyParamDto) => ({
-        name: strategyParamDto.name as StrategyIdent,
-        params: this.parseStrategyParams(strategyParamDto.params),
-      }));
-    } else {
-      this.ioErrors.push(strategyParamsDto);
-    }
+      if (strategyParamsDto.success) {
+        this.strategyParams = strategyParamsDto.payload.map((strategyParamDto) => ({
+          name: strategyParamDto.name as StrategyIdent,
+          params: this.parseStrategyParams(strategyParamDto.params),
+        }));
+      } else {
+        this.ioErrors.push(strategyParamsDto);
+      }
+    });
   };
 
   post = async (

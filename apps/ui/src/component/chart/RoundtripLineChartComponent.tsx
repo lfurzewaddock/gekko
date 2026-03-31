@@ -14,8 +14,8 @@ import {
 } from '@lfurzewaddock/react-financial-charts';
 import { UTCDate } from '@date-fns/utc';
 
-import StaticAutoSizer from '../layout/StaticAutoSizer';
-import * as chartTradeTooltip from '#component/chart/chartTradeTooltip.tsx';
+import StaticAutoSizer from '../layout/StaticAutoSizerComponent';
+import * as ChartTradeTooltipComponent from '#component/chart/ChartTradeTooltipComponent.tsx';
 
 import type { TradeAction } from '#core/domain/Backtest';
 
@@ -68,8 +68,7 @@ interface FocusCtxProps {
   readonly ctxBrushMinSelectionSize?: number;
   readonly ctxXAxisShowGridLines?: boolean;
 }
-interface ChartProps<T extends ChartData>
-  extends FocusCtxProps, Partial<LineSeriesProps> {
+interface ChartProps<T extends ChartData> extends FocusCtxProps, Partial<LineSeriesProps> {
   readonly data: T[];
   readonly height: number;
   readonly width: number;
@@ -77,9 +76,7 @@ interface ChartProps<T extends ChartData>
   readonly tickFormat?: (idx: number) => string;
   readonly margin?: ChartMargin;
   readonly tradeMarkerFill?: (action?: 'buy' | 'sell') => string | undefined;
-  readonly formatTradeTooltipTxt: (
-    trade: NonNullable<ChartData['trade']>,
-  ) => string;
+  readonly formatTradeTooltipTxt: (trade: NonNullable<ChartData['trade']>) => string;
   readonly isDisplayTradeTooltip?: boolean;
   readonly focusChartXAxisHasGridLines?: boolean;
 }
@@ -115,16 +112,11 @@ const toComparableValue = (value: XValue) => {
 };
 
 function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
-  const [focusExtents, setFocusExtents] =
-    useState<FocusContextState['focusExtents']>(undefined);
-  const [hoveredTrade, setHoveredTrade] =
-    useState<FocusContextState['hoveredTrade']>(undefined);
+  const [focusExtents, setFocusExtents] = useState<FocusContextState['focusExtents']>(undefined);
+  const [hoveredTrade, setHoveredTrade] = useState<FocusContextState['hoveredTrade']>(undefined);
 
   const xScaleProvider = useMemo(
-    () =>
-      discontinuousTimeScaleProviderBuilder().inputDateAccessor(
-        (datum: T) => datum.date,
-      ),
+    () => discontinuousTimeScaleProviderBuilder().inputDateAccessor((datum: T) => datum.date),
     [],
   );
 
@@ -138,8 +130,7 @@ function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
     const leftValue = toComparableValue(left);
     const rightValue = toComparableValue(right);
 
-    const nextExtents: [XValue, XValue] =
-      leftValue <= rightValue ? [left, right] : [right, left];
+    const nextExtents: [XValue, XValue] = leftValue <= rightValue ? [left, right] : [right, left];
 
     setFocusExtents((currentExtents) => {
       if (currentExtents !== undefined) {
@@ -149,10 +140,7 @@ function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
         const nextStartValue = toComparableValue(nextExtents[0]);
         const nextEndValue = toComparableValue(nextExtents[1]);
 
-        if (
-          currentStartValue === nextStartValue &&
-          currentEndValue === nextEndValue
-        )
+        if (currentStartValue === nextStartValue && currentEndValue === nextEndValue)
           return currentExtents;
       }
 
@@ -161,13 +149,7 @@ function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
   }, []);
 
   const handleBrush = useCallback(
-    ({
-      start,
-      end,
-    }: {
-      start: { xValue: XValue };
-      end: { xValue: XValue };
-    }) => {
+    ({ start, end }: { start: { xValue: XValue }; end: { xValue: XValue } }) => {
       clearHoveredTrade();
       updateFocusExtents(start.xValue, end.xValue);
     },
@@ -184,31 +166,28 @@ function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
     [clearHoveredTrade, updateFocusExtents],
   );
 
-  const handleHoverTradeTooltip = useCallback(
-    (_: MouseEvent, moreProps: HoverTradeMoreProps) => {
-      const nextHoveredTrade = chartTradeTooltip.resolveHoveredTrade(
-        moreProps,
-        { tradeMarkerRadius, tradeTooltipHitPadding },
-        formatTradeTooltipTxt,
-      );
+  const handleHoverTradeTooltip = useCallback((_: MouseEvent, moreProps: HoverTradeMoreProps) => {
+    const nextHoveredTrade = ChartTradeTooltipComponent.resolveHoveredTrade(
+      moreProps,
+      { tradeMarkerRadius, tradeTooltipHitPadding },
+      formatTradeTooltipTxt,
+    );
 
-      if (!isDisplayTradeTooltip) return;
-      setHoveredTrade((currentHoveredTrade) => {
-        if (
-          currentHoveredTrade?.price === nextHoveredTrade?.price &&
-          currentHoveredTrade?.text === nextHoveredTrade?.text &&
-          toComparableValue(currentHoveredTrade?.xValue ?? 0) ===
-            toComparableValue(nextHoveredTrade?.xValue ?? 0)
-        )
-          return currentHoveredTrade;
+    if (!isDisplayTradeTooltip) return;
+    setHoveredTrade((currentHoveredTrade) => {
+      if (
+        currentHoveredTrade?.price === nextHoveredTrade?.price &&
+        currentHoveredTrade?.text === nextHoveredTrade?.text &&
+        toComparableValue(currentHoveredTrade?.xValue ?? 0) ===
+          toComparableValue(nextHoveredTrade?.xValue ?? 0)
+      )
+        return currentHoveredTrade;
 
-        return nextHoveredTrade;
-      });
-    },
-    [],
-  );
+      return nextHoveredTrade;
+    });
+  }, []);
 
-  const renderHoveredTradeTooltip = chartTradeTooltip.render(hoveredTrade);
+  const renderHoveredTradeTooltip = ChartTradeTooltipComponent.render(hoveredTrade);
 
   const {
     data: initialData,
@@ -232,9 +211,7 @@ function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
   const tradeMarkerProps = useMemo(
     () => ({
       r: tradeMarkerRadius,
-      fillStyle: tradeMarkerFill
-        ? (datum: T) => tradeMarkerFill(datum.trade?.action)
-        : undefined,
+      fillStyle: tradeMarkerFill ? (datum: T) => tradeMarkerFill(datum.trade?.action) : undefined,
       strokeStyle: '#ffffff',
       strokeWidth: 1,
     }),
@@ -259,14 +236,10 @@ function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
   const focusCanvasHeight = height - ctxCanvasHeight - 12;
   if (focusCanvasHeight <= 0) return null;
 
-  const { data, xScale, xAccessor, displayXAccessor } =
-    xScaleProvider(initialData);
+  const { data, xScale, xAccessor, displayXAccessor } = xScaleProvider(initialData);
   if (data.length === 0) return null;
 
-  const ctxExtents: [XValue, XValue] = [
-    xAccessor(data[0]),
-    xAccessor(data[data.length - 1]),
-  ];
+  const ctxExtents: [XValue, XValue] = [xAccessor(data[0]), xAccessor(data[data.length - 1])];
   const currentFocusExtents = focusExtents ?? ctxExtents;
 
   const brushInteractiveState = {
@@ -295,10 +268,7 @@ function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
         xExtents={currentFocusExtents}
       >
         <Chart id={1} yExtents={yAccessor}>
-          <XAxis
-            tickFormat={tickFormat}
-            showGridLines={focusChartXAxisHasGridLines}
-          />
+          <XAxis tickFormat={tickFormat} showGridLines={focusChartXAxisHasGridLines} />
           <YAxis axisAt="left" orient="left" />
           <LineSeries yAccessor={yAccessor} {...rest} />
           <ScatterSeries
@@ -334,12 +304,7 @@ function RoundtripLineChart<T extends ChartData>(props: ChartProps<T>) {
       >
         <Chart id={2} yExtents={yAccessor}>
           <XAxis ticks={6} showGridLines={ctxXAxisShowGridLines} />
-          <YAxis
-            ticks={3}
-            showTicks={false}
-            showDomain={false}
-            showTickLabel={false}
-          />
+          <YAxis ticks={3} showTicks={false} showDomain={false} showTickLabel={false} />
           <LineSeries yAccessor={yAccessor} strokeStyle={ctxLineStrokeStyle} />
           <Brush
             enabled

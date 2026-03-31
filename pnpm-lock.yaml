@@ -6,6 +6,12 @@ settings:
 
 importers:
 
+  .:
+    devDependencies:
+      jest:
+        specifier: ^30.3.0
+        version: 30.3.0(@types/node@25.3.3)
+
   apps/exchange:
     dependencies:
       async:
@@ -8613,7 +8619,7 @@ snapshots:
       '@babel/types': 7.29.0
       '@jridgewell/remapping': 2.3.5
       convert-source-map: 2.0.0
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@6.1.0)
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -9274,7 +9280,7 @@ snapshots:
       '@babel/parser': 7.29.0
       '@babel/template': 7.28.6
       '@babel/types': 7.29.0
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@6.1.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -11001,14 +11007,6 @@ snapshots:
 
   any-promise@1.3.0: {}
 
-  anymatch@2.0.0:
-    dependencies:
-      micromatch: 3.1.10
-      normalize-path: 2.1.1
-    transitivePeerDependencies:
-      - supports-color
-    optional: true
-
   anymatch@2.0.0(supports-color@6.1.0):
     dependencies:
       micromatch: 3.1.10(supports-color@6.1.0)
@@ -11524,21 +11522,6 @@ snapshots:
     dependencies:
       balanced-match: 1.0.2
 
-  braces@2.3.2:
-    dependencies:
-      arr-flatten: 1.1.0
-      array-unique: 0.3.2
-      extend-shallow: 2.0.1
-      fill-range: 4.0.0
-      isobject: 3.0.1
-      repeat-element: 1.1.4
-      snapdragon: 0.8.2
-      snapdragon-node: 2.1.1
-      split-string: 3.1.0
-      to-regex: 3.0.2
-    transitivePeerDependencies:
-      - supports-color
-
   braces@2.3.2(supports-color@6.1.0):
     dependencies:
       arr-flatten: 1.1.0
@@ -11831,25 +11814,6 @@ snapshots:
       get-func-name: 2.0.2
 
   check-types@8.0.3: {}
-
-  chokidar@2.1.8:
-    dependencies:
-      anymatch: 2.0.0
-      async-each: 1.0.6
-      braces: 2.3.2
-      glob-parent: 3.1.0
-      inherits: 2.0.4
-      is-binary-path: 1.0.1
-      is-glob: 4.0.3
-      normalize-path: 3.0.0
-      path-is-absolute: 1.0.1
-      readdirp: 2.2.1
-      upath: 1.2.0
-    optionalDependencies:
-      fsevents: 1.2.13
-    transitivePeerDependencies:
-      - supports-color
-    optional: true
 
   chokidar@2.1.8(supports-color@6.1.0):
     dependencies:
@@ -12540,10 +12504,6 @@ snapshots:
 
   de-indent@1.0.2: {}
 
-  debug@2.6.9:
-    dependencies:
-      ms: 2.0.0
-
   debug@2.6.9(supports-color@6.1.0):
     dependencies:
       ms: 2.0.0
@@ -12563,10 +12523,6 @@ snapshots:
       supports-color: 6.1.0
 
   debug@4.1.1:
-    dependencies:
-      ms: 2.1.3
-
-  debug@4.4.3:
     dependencies:
       ms: 2.1.3
 
@@ -13068,18 +13024,6 @@ snapshots:
 
   exit-x@0.2.2: {}
 
-  expand-brackets@2.1.4:
-    dependencies:
-      debug: 2.6.9
-      define-property: 0.2.5
-      extend-shallow: 2.0.1
-      posix-character-classes: 0.1.1
-      regex-not: 1.0.2
-      snapdragon: 0.8.2
-      to-regex: 3.0.2
-    transitivePeerDependencies:
-      - supports-color
-
   expand-brackets@2.1.4(supports-color@6.1.0):
     dependencies:
       debug: 2.6.9(supports-color@6.1.0)
@@ -13166,19 +13110,6 @@ snapshots:
       is-extendable: 1.0.1
 
   extend@3.0.2: {}
-
-  extglob@2.0.4:
-    dependencies:
-      array-unique: 0.3.2
-      define-property: 1.0.0
-      expand-brackets: 2.1.4
-      extend-shallow: 2.0.1
-      fragment-cache: 0.2.1
-      regex-not: 1.0.2
-      snapdragon: 0.8.2
-      to-regex: 3.0.2
-    transitivePeerDependencies:
-      - supports-color
 
   extglob@2.0.4(supports-color@6.1.0):
     dependencies:
@@ -13884,7 +13815,7 @@ snapshots:
   http-proxy-agent@7.0.2:
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@6.1.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -13924,7 +13855,7 @@ snapshots:
   https-proxy-agent@7.0.6:
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@6.1.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -14339,7 +14270,7 @@ snapshots:
   istanbul-lib-source-maps@5.0.6:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
-      debug: 4.4.3
+      debug: 4.4.3(supports-color@6.1.0)
       istanbul-lib-coverage: 3.2.2
     transitivePeerDependencies:
       - supports-color
@@ -15488,24 +15419,6 @@ snapshots:
 
   methods@1.1.2: {}
 
-  micromatch@3.1.10:
-    dependencies:
-      arr-diff: 4.0.0
-      array-unique: 0.3.2
-      braces: 2.3.2
-      define-property: 2.0.2
-      extend-shallow: 3.0.2
-      extglob: 2.0.4
-      fragment-cache: 0.2.1
-      kind-of: 6.0.3
-      nanomatch: 1.2.13
-      object.pick: 1.3.0
-      regex-not: 1.0.2
-      snapdragon: 0.8.2
-      to-regex: 3.0.2
-    transitivePeerDependencies:
-      - supports-color
-
   micromatch@3.1.10(supports-color@6.1.0):
     dependencies:
       arr-diff: 4.0.0
@@ -15746,22 +15659,6 @@ snapshots:
   nan@2.24.0: {}
 
   nanoid@3.3.11: {}
-
-  nanomatch@1.2.13:
-    dependencies:
-      arr-diff: 4.0.0
-      array-unique: 0.3.2
-      define-property: 2.0.2
-      extend-shallow: 3.0.2
-      fragment-cache: 0.2.1
-      is-windows: 1.0.2
-      kind-of: 6.0.3
-      object.pick: 1.3.0
-      regex-not: 1.0.2
-      snapdragon: 0.8.2
-      to-regex: 3.0.2
-    transitivePeerDependencies:
-      - supports-color
 
   nanomatch@1.2.13(supports-color@6.1.0):
     dependencies:
@@ -16975,15 +16872,6 @@ snapshots:
       string_decoder: 1.3.0
       util-deprecate: 1.0.2
 
-  readdirp@2.2.1:
-    dependencies:
-      graceful-fs: 4.2.11
-      micromatch: 3.1.10
-      readable-stream: 2.3.8
-    transitivePeerDependencies:
-      - supports-color
-    optional: true
-
   readdirp@2.2.1(supports-color@6.1.0):
     dependencies:
       graceful-fs: 4.2.11
@@ -17487,19 +17375,6 @@ snapshots:
   snapdragon-util@3.0.1:
     dependencies:
       kind-of: 3.2.2
-
-  snapdragon@0.8.2:
-    dependencies:
-      base: 0.11.2
-      debug: 2.6.9
-      define-property: 0.2.5
-      extend-shallow: 2.0.1
-      map-cache: 0.2.2
-      source-map: 0.5.7
-      source-map-resolve: 0.5.3
-      use: 3.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   snapdragon@0.8.2(supports-color@6.1.0):
     dependencies:
@@ -18479,7 +18354,7 @@ snapshots:
 
   watchpack-chokidar2@2.0.1:
     dependencies:
-      chokidar: 2.1.8
+      chokidar: 2.1.8(supports-color@6.1.0)
     transitivePeerDependencies:
       - supports-color
     optional: true
@@ -18610,7 +18485,7 @@ snapshots:
       loader-runner: 2.4.0
       loader-utils: 1.4.2
       memory-fs: 0.4.1
-      micromatch: 3.1.10
+      micromatch: 3.1.10(supports-color@6.1.0)
       mkdirp: 0.5.6
       neo-async: 2.6.2
       node-libs-browser: 2.2.1
