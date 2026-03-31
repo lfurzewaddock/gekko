@@ -27,6 +27,12 @@ pnpm i
 pnpm approve-builds
 ```
 
+### Run all tests with aggregated coverage for all apps (run from root dir)
+
+```
+pnpm test
+```
+
 ### Run all tests (legacy mocha & current jest) in gekko app
 
 ```
