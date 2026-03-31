@@ -21,6 +21,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "useUnknownInCatchVariables": true,
+    "noImplicitOverride": true,
 
     "types": ["jest", "@testing-library/jest-dom"]
   },

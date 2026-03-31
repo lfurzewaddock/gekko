@@ -1,14 +1,13 @@
 import { observer } from 'mobx-react';
 import { clsx } from 'clsx/lite';
 
-import NavMenuBtn from '#layout/NavMenuBtn';
+import NavMenuBtn from '#layout/NavMenuBtnComponent.tsx';
 import { useDependency } from '#core/hooks/use-dependency';
 import type { ContainerDefinition } from '#ioc';
 
 function NavComponent() {
-  const presenter = useDependency<ContainerDefinition['NavigationPresenter']>(
-    'NavigationPresenter',
-  );
+  const presenter =
+    useDependency<ContainerDefinition['NavigationPresenter']>('NavigationPresenter');
   const router = useDependency<ContainerDefinition['Router']>('Router');
 
   return (

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { observer } from 'mobx-react';
 
 import { useDependency } from '#core/hooks/use-dependency';
-import Layout from '#layout/Layout';
+import Layout from '#layout/LayoutComponent.tsx';
 import PageHomeComponent from '#page/HomeComponent';
 import PageBacktestComponent from '#page/Backtest/BacktestComponent';
 import PageNotFoundComponent from '#page/NotFoundComponent';
@@ -11,8 +11,7 @@ import type { ContainerDefinition } from '#ioc';
 import type { RouteIdents } from '#routing/RouterRepository';
 
 function App() {
-  const presenter =
-    useDependency<ContainerDefinition['AppPresenter']>('AppPresenter');
+  const presenter = useDependency<ContainerDefinition['AppPresenter']>('AppPresenter');
 
   useEffect(() => {
     presenter.load(onRouteChange);
@@ -41,8 +40,7 @@ function App() {
   return (
     <Layout>
       {renderedComponents.map(
-        (current) =>
-          presenter.currentRoute.routeId === current.id && current.component,
+        (current) => presenter.currentRoute.routeId === current.id && current.component,
       )}
     </Layout>
   );

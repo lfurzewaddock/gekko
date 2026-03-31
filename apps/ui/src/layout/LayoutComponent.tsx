@@ -1,6 +1,6 @@
 import NavComponent from '#layout/NavComponent';
-import Header from '#layout/Header';
-import Footer from '#layout/Footer';
+import Header from '#layout/HeaderComponent.tsx';
+import Footer from '#layout/FooterComponent.tsx';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
