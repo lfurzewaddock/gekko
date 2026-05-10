@@ -43,9 +43,9 @@
   },
   "devDependencies": {
     "@jest/globals": "^30.4.1",
-    "@rsbuild/core": "^1.7.5",
-    "@rsbuild/plugin-css-minimizer": "^1.1.1",
-    "@rsbuild/plugin-react": "^1.4.6",
+    "@rsbuild/core": "^2.0.5",
+    "@rsbuild/plugin-css-minimizer": "^2.0.0",
+    "@rsbuild/plugin-react": "^2.0.0",
     "@swc/jest": "^0.2.39",
     "@tailwindcss/postcss": "^4.3.0",
     "@testing-library/jest-dom": "^6.9.1",
